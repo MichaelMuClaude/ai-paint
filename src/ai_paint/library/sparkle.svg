@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Four-point sparkle, about 30 x 30, centred on 0,0. Colour from color="..." (try #fff4b0).</desc>
+  <defs>
+    <path id="lib-sparkle" d="M 0 -15 C 2 -4 4 -2 15 0 C 4 2 2 4 0 15 C -2 4 -4 2 -15 0 C -4 -2 -2 -4 0 -15 Z"
+          fill="currentColor" stroke="#d4a017" stroke-width="1.2"/>
+  </defs>
+</svg>

@@ -113,3 +113,15 @@ The anime figures drawn with ai-paint's own ops still looked crude. The tool's o
 | 23 | Safety | An allow-list: no scripts, no event attributes, no outside links, no DOCTYPE |
 
 The redrawn girl (`examples/anime-girl.svg`) renders in about 0.13 seconds and is the best character so far.
+
+## Round 10: SVG as the core
+
+Drawing with SVG worked better than ai-paint's own ops, so SVG becomes the core. Phase 1 adds what I needed most while drawing:
+
+| # | What was missing | Decision |
+|---|---|---|
+| 24 | Redrawing common parts every time | A part library: eyes, brows, mouths, nose, blush, manga symbols, recoloured with `color` |
+| 25 | Changing one detail meant rewriting the SVG | `svg_set`, `svg_remove` and `svg_replace` by element id |
+| 26 | Finding what to change | `ai-paint elements DOC OP_ID` |
+
+Test: a four-mood expression sheet took 69 lines of SVG, and it is the clearest drawing so far.

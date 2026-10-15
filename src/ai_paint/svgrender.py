@@ -175,3 +175,142 @@ def render_svg(markup: str, width: int, height: int) -> Image.Image:
         alpha,
     ], axis=-1)
     return Image.fromarray(np.clip(np.round(rgba), 0, 255).astype(np.uint8), "RGBA")
+
+
+# --- the part library -----------------------------------------------------------------------------
+
+from functools import lru_cache  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+LIBRARY_DIR = Path(__file__).parent / "library"
+LIBRARY_REFERENCE = re.compile(r"#(lib-[a-z0-9-]+)")
+ET.register_namespace("", SVG_NS)
+ET.register_namespace("xlink", XLINK_NS)
+
+
+@lru_cache(maxsize=1)
+def library() -> dict:
+    """The built-in parts, as {"lib-name": {"description": ..., "defs": markup, "ids": set of ids}}."""
+    parts = {}
+    for path in sorted(LIBRARY_DIR.glob("*.svg")):
+        root = ET.fromstring(path.read_text(encoding="utf-8"))
+        description = ""
+        defs_markup = []
+        ids = set()
+        for child in root:
+            name = _local_name(child.tag)
+            if name == "desc":
+                description = (child.text or "").strip()
+            elif name == "defs":
+                for item in child:
+                    defs_markup.append(ET.tostring(item, encoding="unicode"))
+                    ids.update(element.get("id") for element in item.iter() if element.get("id"))
+        parts["lib-" + path.stem] = {"description": description, "defs": "".join(defs_markup), "ids": ids}
+    return parts
+
+
+def _part_for(reference: str) -> str:
+    parts = library()
+    for name, part in parts.items():
+        if reference in part["ids"]:
+            return name
+    raise PaintError(
+        f"svg refers to #{reference}, which is not a library part; available parts: {', '.join(parts)}"
+    )
+
+
+def expand_library(markup: str) -> str:
+    """Add the definitions of every library part the markup uses (href="#lib-...") to the markup."""
+    needed: list[str] = []
+    pending = LIBRARY_REFERENCE.findall(markup)
+    defined_here = set(re.findall(r'\bid="(lib-[a-z0-9-]+)"', markup))
+    while pending:
+        reference = pending.pop()
+        if reference in defined_here:
+            continue
+        name = _part_for(reference)
+        if name not in needed:
+            needed.append(name)
+            pending.extend(LIBRARY_REFERENCE.findall(library()[name]["defs"]))
+    if not needed:
+        return markup
+    defs = "<defs>" + "".join(library()[name]["defs"] for name in needed) + "</defs>"
+    root = re.match(r"\s*(<\?xml[^>]*>\s*)?<svg\b[^>]*>", markup)
+    if root:
+        return markup[:root.end()] + defs + markup[root.end():]
+    return defs + markup
+
+
+# --- editing elements by id -----------------------------------------------------------------------
+
+def _parse_for_edit(markup: str):
+    if re.match(r"\s*(<\?xml[^>]*>\s*)?<svg\b", markup):
+        return ET.fromstring(markup), False
+    return ET.fromstring(f'<svg xmlns="{SVG_NS}" xmlns:xlink="{XLINK_NS}">{markup}</svg>'), True
+
+
+def _serialise(root, fragment: bool) -> str:
+    if fragment:
+        return "".join(ET.tostring(child, encoding="unicode") for child in root)
+    return ET.tostring(root, encoding="unicode")
+
+
+def _find(root, element_id: str):
+    for parent in root.iter():
+        for index, child in enumerate(list(parent)):
+            if child.get("id") == element_id:
+                return parent, index, child
+    raise PaintError(f"there is no element with id {element_id!r} in this svg; run 'ai-paint elements' to see them")
+
+
+def set_attributes(markup: str, element_id: str, attributes: dict) -> str:
+    """Change attributes of one element. A value of null removes the attribute."""
+    if not isinstance(attributes, dict):
+        raise PaintError(f"svg_set for {element_id!r} must be an object of attribute names and values")
+    root, fragment = _parse_for_edit(markup)
+    _, _, element = _find(root, element_id)
+    for name, value in attributes.items():
+        if name == "id":
+            raise PaintError("an element's id cannot be changed with svg_set; use svg_replace")
+        if value is None:
+            element.attrib.pop(name, None)
+        else:
+            element.set(name, str(value))
+    return _serialise(root, fragment)
+
+
+def remove_element(markup: str, element_id: str) -> str:
+    root, fragment = _parse_for_edit(markup)
+    parent, index, _ = _find(root, element_id)
+    del parent[index]
+    return _serialise(root, fragment)
+
+
+def replace_element(markup: str, element_id: str, new_markup: str) -> str:
+    """Put new markup (one or more elements) where the element with this id was."""
+    if not isinstance(new_markup, str) or not new_markup.strip():
+        raise PaintError(f"svg_replace for {element_id!r} needs SVG markup text")
+    root, fragment = _parse_for_edit(markup)
+    parent, index, _ = _find(root, element_id)
+    try:
+        replacement = ET.fromstring(f'<svg xmlns="{SVG_NS}" xmlns:xlink="{XLINK_NS}">{new_markup}</svg>')
+    except ET.ParseError as exc:
+        raise PaintError(f"svg_replace markup for {element_id!r} is not well-formed: {exc}") from exc
+    del parent[index]
+    for offset, child in enumerate(list(replacement)):
+        parent.insert(index + offset, child)
+    return _serialise(root, fragment)
+
+
+def elements(markup: str) -> list[dict]:
+    """Every element that has an id, with its tag and a few useful attributes."""
+    root, _ = _parse_for_edit(markup)
+    rows = []
+    for element in root.iter():
+        element_id = element.get("id")
+        if not element_id:
+            continue
+        details = {key: element.get(key) for key in ("href", "fill", "stroke", "transform", "color", "opacity")
+                   if element.get(key) is not None}
+        rows.append({"id": element_id, "tag": _local_name(element.tag), **details})
+    return rows

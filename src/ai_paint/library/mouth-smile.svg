@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Small closed smile, about 32 x 12, centred on 0,0.</desc>
+  <defs>
+    <path id="lib-mouth-smile" d="M -14 -2 Q 0 10 14 -2" stroke="#9a3e44" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  </defs>
+</svg>

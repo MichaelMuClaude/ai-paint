@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Tapered eyebrow, about 76 x 20, centred on 0,0, thick end on the left. Colour from color="...". Rotate it for anger or worry.</desc>
+  <defs>
+    <path id="lib-brow" d="M -38 2 C -20 -12 16 -13 34 -3 C 16 -7 -18 -5 -38 6 Z" fill="currentColor"/>
+  </defs>
+</svg>

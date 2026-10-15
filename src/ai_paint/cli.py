@@ -154,6 +154,56 @@ def _trace(args) -> int:
     return 0
 
 
+def _parts(args) -> int:
+    from ai_paint.svgrender import library, render_svg
+
+    parts = library()
+    if args.preview:
+        if args.preview not in parts:
+            return _fail(f"no part named {args.preview!r}; available: {', '.join(parts)}")
+        if not args.output:
+            return _fail("--preview needs -o PICTURE.png")
+        markup = (f'<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140">'
+                  f'<rect width="200" height="140" fill="#ffffff"/>'
+                  f'<defs>{parts[args.preview]["defs"]}</defs>'
+                  f'<use href="#{args.preview}" transform="translate(100 70) scale(1.6)" color="#3f7fe0"/></svg>')
+        try:
+            image = render_svg(markup, 200, 140)
+            document.save_image(image, Path(args.output), force=args.force)
+        except PaintError as exc:
+            return _fail(str(exc))
+        print(json.dumps({"part": args.preview, "output": Path(args.output).name}, indent=2))
+        return 0
+    print(json.dumps([{"part": name, "use": f'<use href="#{name}" transform="translate(X Y)"/>',
+                       "description": part["description"]} for name, part in parts.items()],
+                     indent=2, ensure_ascii=False))
+    return 0
+
+
+def _elements(args) -> int:
+    from ai_paint.svgrender import elements
+
+    try:
+        doc = document.load(Path(args.document))
+    except PaintError as exc:
+        return _fail(str(exc))
+    ops_by_id = {op.get("id"): op for op in doc.get("ops", []) if isinstance(op, dict)}
+    op = ops_by_id.get(args.op_id)
+    if op is None or op.get("op") != "svg":
+        return _fail(f"there is no svg op with id {args.op_id!r}")
+    if "svg" in op:
+        markup = op["svg"]
+    else:
+        path = Path(args.document).resolve().parent / op["file"]
+        markup = path.read_text(encoding="utf-8")
+    try:
+        rows = elements(markup)
+    except Exception as exc:  # noqa: BLE001 - report any parse problem cleanly
+        return _fail(f"could not read the svg: {exc}")
+    print(json.dumps(rows, indent=2, ensure_ascii=False))
+    return 0
+
+
 def _ops(args) -> int:
     catalogue = []
     for operation in ops.OPERATIONS.values():
@@ -295,6 +345,17 @@ def main() -> None:
     trace.add_argument("--offset", help="Move the lines by x,y pixels, for example 120,80")
     trace.add_argument("--force", action="store_true", help="Replace the output file if it exists")
     trace.set_defaults(func=_trace)
+
+    parts = sub.add_parser("parts", help="List the built-in SVG parts (eyes, mouths, manga symbols)")
+    parts.add_argument("--preview", help="Draw one part, for example lib-eye-anime")
+    parts.add_argument("-o", "--output", help="Picture for --preview")
+    parts.add_argument("--force", action="store_true", help="Replace the output file if it exists")
+    parts.set_defaults(func=_parts)
+
+    element_list = sub.add_parser("elements", help="List the elements with ids inside an svg op")
+    element_list.add_argument("document")
+    element_list.add_argument("op_id", help="The id of the svg op")
+    element_list.set_defaults(func=_elements)
 
     catalogue = sub.add_parser("ops", help="List every operation and its parameters as JSON")
     catalogue.set_defaults(func=_ops)

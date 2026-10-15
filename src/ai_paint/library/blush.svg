@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Soft cheek blush, about 50 x 24, centred on 0,0. Colour from color="..." (try #ff8f8f).</desc>
+  <defs>
+    <filter id="lib-blush-blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5"/></filter>
+    <ellipse id="lib-blush" cx="0" cy="0" rx="22" ry="10" fill="currentColor" opacity="0.55" filter="url(#lib-blush-blur)"/>
+  </defs>
+</svg>

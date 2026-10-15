@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Wide grin showing the top teeth, about 84 x 40, centred on 0,0.</desc>
+  <defs>
+    <clipPath id="lib-mouth-grin-clip"><path d="M -40 -10 C -26 26 26 26 40 -10 C 24 2 -24 2 -40 -10 Z"/></clipPath>
+    <g id="lib-mouth-grin">
+      <path d="M -40 -10 C -26 26 26 26 40 -10 C 24 2 -24 2 -40 -10 Z" fill="#7a1f2b"/>
+      <g clip-path="url(#lib-mouth-grin-clip)">
+        <path d="M -40 -12 L 40 -12 L 40 4 C 24 12 -24 12 -40 4 Z" fill="#ffffff"/>
+        <ellipse cx="0" cy="20" rx="16" ry="8" fill="#e8737f"/>
+      </g>
+      <path d="M -40 -10 C -26 26 26 26 40 -10" stroke="#2b1a10" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M -40 -10 C -24 2 24 2 40 -10" stroke="#2b1a10" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>

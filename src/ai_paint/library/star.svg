@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Five-point star, about 32 x 30, centred on 0,0. Colour from color="..." (try #ffd34d).</desc>
+  <defs>
+    <path id="lib-star" d="M 0 -15 L 4.4 -5.4 L 15 -4.6 L 7 2.4 L 9.3 13 L 0 7.4 L -9.3 13 L -7 2.4 L -15 -4.6 L -4.4 -5.4 Z"
+          fill="currentColor" stroke="#b8860b" stroke-width="1.4"/>
+  </defs>
+</svg>

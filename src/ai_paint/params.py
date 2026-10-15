@@ -237,9 +237,11 @@ def coerce(param: Param, value, size: tuple[int, int], base: Path | None = None)
     if kind == "svg":
         from ai_paint.svgrender import check_svg, wrap_fragment
 
+        from ai_paint.svgrender import expand_library
+
         if not isinstance(value, str):
             raise PaintError(f"{param.name} must be SVG markup text")
-        check_svg(wrap_fragment(value, 1, 1))
+        check_svg(wrap_fragment(expand_library(value), 1, 1))
         return value
     if kind == "svgfile":
         from ai_paint.svgrender import MAX_MARKUP, check_svg, wrap_fragment
@@ -251,8 +253,10 @@ def coerce(param: Param, value, size: tuple[int, int], base: Path | None = None)
             raise PaintError(f"{param.name} file does not exist: {path}")
         if path.stat().st_size > MAX_MARKUP:
             raise PaintError(f"{param.name} is larger than {MAX_MARKUP} bytes")
+        from ai_paint.svgrender import expand_library
+
         markup = path.read_text(encoding="utf-8")
-        check_svg(wrap_fragment(markup, 1, 1))
+        check_svg(wrap_fragment(expand_library(markup), 1, 1))
         return markup
     if kind == "font":
         return _font(param, value, base)

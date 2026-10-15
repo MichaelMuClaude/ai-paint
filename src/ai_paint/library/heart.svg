@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Heart, about 32 x 28, centred on 0,0. Colour from color="..." (try #ff4d6d).</desc>
+  <defs>
+    <path id="lib-heart" d="M 0 12 C -18 0 -16 -14 -7 -14 C -3 -14 -1 -11 0 -8 C 1 -11 3 -14 7 -14 C 16 -14 18 0 0 12 Z"
+          fill="currentColor" stroke="#8a1a28" stroke-width="1.5"/>
+  </defs>
+</svg>

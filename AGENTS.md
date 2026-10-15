@@ -24,7 +24,9 @@ src/ai_paint/
   raster.py    brush dabs, shape masks, compositing, flood fill, layer blur
   svgpath.py   SVG path data: parsing and curve flattening
   gradient.py  linear and radial gradient fills
-  svgrender.py SVG allow-list check, and drawing through the system's librsvg and cairo (ctypes)
+  svgrender.py SVG allow-list check, drawing through the system's librsvg and cairo (ctypes),
+               the part library loader, and element edits by id
+  library/     built-in SVG parts; each file holds one part whose ids all start with lib-<file name>
   document.py  document schema, validation, rendering, apply, save
   view.py      grid overlay, crop and zoom (for looking only)
   cli.py       new, info, ops, validate, apply, render

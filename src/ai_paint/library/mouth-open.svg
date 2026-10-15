@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Small open smiling mouth with a tongue, about 30 x 20, centred on 0,0.</desc>
+  <defs>
+    <clipPath id="lib-mouth-open-clip"><path d="M -12 -4 Q 0 16 12 -4 Q 0 2 -12 -4 Z"/></clipPath>
+    <g id="lib-mouth-open">
+      <path d="M -12 -4 Q 0 16 12 -4 Q 0 2 -12 -4 Z" fill="#7a1f2b"/>
+      <ellipse cx="0" cy="10" rx="8" ry="6" fill="#ff8a8a" clip-path="url(#lib-mouth-open-clip)"/>
+      <path d="M -14 -5 Q 0 4 14 -5" stroke="#9a3e44" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Manga sweat drop, about 22 x 32, centred on 0,0, point at the top.</desc>
+  <defs>
+    <g id="lib-sweat-drop">
+      <path d="M 0 -15 C 6 -4 11 2 11 7 C 11 13 6 16 0 16 C -6 16 -11 13 -11 7 C -11 2 -6 -4 0 -15 Z"
+            fill="#cdeeff" stroke="#3b82c4" stroke-width="2"/>
+      <path d="M -5 5 C -5 2 -3 0 -1 -2" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>

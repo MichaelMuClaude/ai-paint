@@ -236,12 +236,12 @@ def _need_svg_or_file(values):
 
 
 def _draw_svg(layer, v, size):
-    from ai_paint.svgrender import render_svg, wrap_fragment
+    from ai_paint.svgrender import expand_library, render_svg, wrap_fragment
 
     box = v["box"] if v["box"] is not None else [0, 0, size[0], size[1]]
     width, height = max(1, round(box[2])), max(1, round(box[3]))
     markup = v["svg"] if v["svg"] is not None else v["file"]
-    picture = render_svg(wrap_fragment(markup, width, height), width, height)
+    picture = render_svg(wrap_fragment(expand_library(markup), width, height), width, height)
     raster.place_image(layer, picture, [box[0], box[1]], v["opacity"])
 
 

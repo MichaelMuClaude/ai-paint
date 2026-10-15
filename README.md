@@ -79,6 +79,29 @@ ai-paint apply page.json --change '{"ops":[{"op":"svg","layer":"l1","file":"girl
 
 Without an `<svg>` root, the markup's coordinates are the box's own pixels. SVG drawing needs librsvg and cairo (packages `librsvg2-2` and `libcairo2` on Debian and Ubuntu), loaded at run time and not bundled. See `examples/anime-girl.svg`: the eye is defined once and mirrored with `<use>`, the iris is clipped to the eye white, and blush uses a blur filter.
 
+### The part library
+
+ai-paint ships SVG parts that any `svg` op can use without defining them: anime eyes (open and closed), brows, three mouths, a nose, blush, and manga symbols (sweat drop, anger mark, sparkle, heart, star). Write `<use href="#lib-eye-anime" transform="translate(120 80)" color="#3f7fe0"/>` and the part is added for you. Most parts take their colour from `color`, and `scale(-1 1)` mirrors them.
+
+```bash
+ai-paint parts                                        # list the parts and what they look like
+ai-paint parts --preview lib-eye-anime -o eye.png     # draw one part
+```
+
+See `examples/expression-sheet.svg`: one character in four moods, 69 lines of SVG.
+
+### Changing one element
+
+Give SVG elements an `id`, then change them one at a time instead of rewriting the markup:
+
+```json
+{"svg_set": {"art": {"iris-left": {"fill": "#2e8b57"}}},
+ "svg_remove": {"art": ["sweat"]},
+ "svg_replace": {"art": {"mouth": "<use href=\"#lib-mouth-grin\" transform=\"translate(0 60)\"/>"}}}
+```
+
+`ai-paint elements DOC OP_ID` lists the elements with ids in an svg op. Edits work on inline `svg` markup; for a `.svg` file, edit the file.
+
 ## Tracing a sketch
 
 `ai-paint trace PICTURE.png -o lines.json` turns the picture's dark lines into smooth path ops. Pixels darker than `--threshold` (default 30) count as lines. The output is a changes file: `apply` it to a canvas of the size the command reports, and the lines appear on their own layer. `--scale` and `--offset` move and resize the traced lines, so a figure can go into a panel. `--thicken N` grows the lines by N pixels (0 to 5) before tracing; use 2 for manga-weight lines. Thickening the mask works better than a layer outline, which doubles thin lines. Tracing uses [ImageTracer](src/ai_paint/vendor/README.md), which is public domain, and needs Node.js.

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Small anime nose, a short line, about 8 x 12, centred on 0,0.</desc>
+  <defs>
+    <path id="lib-nose" d="M 3 -5 L -2 4" stroke="#d48f74" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </defs>
+</svg>

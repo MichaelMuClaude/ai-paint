@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Closed happy eye (an upward arc), about 76 x 24, centred on 0,0. Colour from color="...".</desc>
+  <defs>
+    <g id="lib-eye-closed">
+      <path d="M -34 8 C -20 -14 20 -14 34 8" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>

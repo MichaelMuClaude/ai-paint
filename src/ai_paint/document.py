@@ -15,7 +15,8 @@ MAX_PIXELS = 25_000_000
 BLEND_MODES = ("normal",)
 DOCUMENT_KEYS = {"schema", "canvas", "layers", "ops"}
 LAYER_KEYS = {"id", "name", "opacity", "visible", "blend", "blur", "outline"}
-CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers", "canvas"}
+CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers", "canvas",
+               "svg_set", "svg_remove", "svg_replace"}
 
 
 def _whole(value, label: str, low: int, high: int) -> int:
@@ -182,6 +183,41 @@ def _next_id(prefix: str, taken: set) -> str:
     return f"{prefix}{number}"
 
 
+def _svg_markup_op(operations: list, op_id: str, action: str) -> dict:
+    op = operations[_op_index(operations, op_id, action)]
+    if op.get("op") != "svg":
+        raise PaintError(f"{action}: op {op_id!r} is not an svg op")
+    if "svg" not in op:
+        raise PaintError(f"{action}: op {op_id!r} draws a .svg file; edit that file directly")
+    return op
+
+
+def _apply_svg_edits(operations: list, changes: dict) -> None:
+    from ai_paint import svgrender
+
+    for key in ("svg_set", "svg_remove", "svg_replace"):
+        if key in changes and not isinstance(changes[key], dict):
+            raise PaintError(f"'{key}' must be an object keyed by op id")
+    for op_id, edits in changes.get("svg_remove", {}).items():
+        op = _svg_markup_op(operations, op_id, "svg_remove")
+        if not isinstance(edits, list):
+            raise PaintError("svg_remove values must be lists of element ids")
+        for element_id in edits:
+            op["svg"] = svgrender.remove_element(op["svg"], element_id)
+    for op_id, edits in changes.get("svg_replace", {}).items():
+        op = _svg_markup_op(operations, op_id, "svg_replace")
+        if not isinstance(edits, dict):
+            raise PaintError("svg_replace values must map element ids to markup")
+        for element_id, markup in edits.items():
+            op["svg"] = svgrender.replace_element(op["svg"], element_id, markup)
+    for op_id, edits in changes.get("svg_set", {}).items():
+        op = _svg_markup_op(operations, op_id, "svg_set")
+        if not isinstance(edits, dict):
+            raise PaintError("svg_set values must map element ids to attribute objects")
+        for element_id, attributes in edits.items():
+            op["svg"] = svgrender.set_attributes(op["svg"], element_id, attributes)
+
+
 def _layer_index(layers: list, layer_id: str, action: str) -> int:
     for index, layer in enumerate(layers):
         if isinstance(layer, dict) and layer.get("id") == layer_id:
@@ -207,6 +243,9 @@ def apply_changes(doc: dict, changes, base: Path | None = None) -> dict:
     - "update_layers": {layer_id: {field: value, ...}} to change fields of existing layers
     - "remove_layers": [layer_id, ...] to delete layers that have no ops left on them
     - "canvas": {"background": "#ffffff"} to change canvas fields (width, height, or background)
+    - "svg_set": {op_id: {element_id: {attribute: value or null}}} to change elements inside an svg op
+    - "svg_remove": {op_id: [element_id, ...]} to delete elements inside an svg op
+    - "svg_replace": {op_id: {element_id: "<new markup/>"}} to swap an element for new markup
     Items without an id get one. The result is validated before it is returned.
     """
     if not isinstance(changes, dict):
@@ -254,6 +293,7 @@ def apply_changes(doc: dict, changes, base: Path | None = None) -> dict:
         if unknown_canvas:
             raise PaintError(f"canvas has unknown field(s): {', '.join(unknown_canvas)}")
         result["canvas"] = {**result.get("canvas", {}), **canvas_fields}
+    _apply_svg_edits(operations, changes)
     layers = result.setdefault("layers", [])
     for layer_id, fields in layer_updates.items():
         index = _layer_index(layers, layer_id, "update_layers")

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Anime eye, about 90 x 70, centred on 0,0, outer corner on the left. Iris colour from color="...". Mirror for the other eye with scale(-1 1).</desc>
+  <defs>
+    <path id="lib-eye-anime-shape" d="M -36 4 C -30 -30 26 -32 36 -6 C 32 22 -24 26 -36 4 Z"/>
+    <clipPath id="lib-eye-anime-clip"><use href="#lib-eye-anime-shape"/></clipPath>
+    <linearGradient id="lib-eye-anime-shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.55"/>
+      <stop offset="0.45" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="0.75" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.45"/>
+    </linearGradient>
+    <g id="lib-eye-anime">
+      <use href="#lib-eye-anime-shape" fill="#ffffff"/>
+      <g clip-path="url(#lib-eye-anime-clip)">
+        <ellipse cx="3" cy="0" rx="20" ry="27" fill="currentColor"/>
+        <ellipse cx="3" cy="0" rx="20" ry="27" fill="url(#lib-eye-anime-shade)"/>
+        <ellipse cx="3" cy="3" rx="9" ry="13" fill="#0c0f30"/>
+        <path d="M -40 -34 L 44 -34 L 44 -14 C 20 -24 -20 -24 -40 -10 Z" fill="#2a1840" opacity="0.2"/>
+      </g>
+      <circle cx="-5" cy="-10" r="6.5" fill="#ffffff"/>
+      <circle cx="10" cy="12" r="3" fill="#ffffff" opacity="0.9"/>
+      <path d="M -39 5 C -32 -34 26 -38 41 -8 L 43 -3 C 26 -28 -26 -26 -35 8 Z" fill="#1a1230"/>
+      <path d="M -36 -4 L -50 -15 L -41 3 Z" fill="#1a1230"/>
+      <path d="M -24 18 C -8 25 14 24 28 13" stroke="#6b3f4a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>
