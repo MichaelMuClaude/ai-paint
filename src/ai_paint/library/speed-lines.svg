@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Manga speed lines radiating from a centre, about 240x240, centred on 0,0. Colour from color="...". Put it behind the subject on its own layer.</desc>
+  <defs>
+    <g id="lib-speed-lines" stroke="currentColor" fill="none" stroke-linecap="round">
+      <path d="M 0 0 L 120 -8" stroke-width="3"/><path d="M 0 0 L 118 18" stroke-width="2"/>
+      <path d="M 0 0 L 110 40" stroke-width="4"/><path d="M 0 0 L 96 62" stroke-width="2.5"/>
+      <path d="M 0 0 L 70 90" stroke-width="3.5"/><path d="M 0 0 L 40 108" stroke-width="2"/>
+      <path d="M 0 0 L 0 118" stroke-width="3"/><path d="M 0 0 L -40 108" stroke-width="2.5"/>
+      <path d="M 0 0 L -70 90" stroke-width="3"/><path d="M 0 0 L -96 62" stroke-width="2"/>
+      <path d="M 0 0 L -110 40" stroke-width="4"/><path d="M 0 0 L -118 18" stroke-width="2.5"/>
+      <path d="M 0 0 L -120 -8" stroke-width="3"/><path d="M 0 0 L -108 -36" stroke-width="2"/>
+      <path d="M 0 0 L -80 -64" stroke-width="3.5"/><path d="M 0 0 L -44 -92" stroke-width="2.5"/>
+      <path d="M 0 0 L 0 -118" stroke-width="3"/><path d="M 0 0 L 44 -92" stroke-width="2"/>
+      <path d="M 0 0 L 80 -64" stroke-width="3.5"/><path d="M 0 0 L 108 -36" stroke-width="2.5"/>
+    </g>
+  </defs>
+</svg>

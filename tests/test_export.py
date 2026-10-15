@@ -67,6 +67,9 @@ CASES = {
     "svg op": {"ops": [
         {"op": "svg", "layer": "l1", "box": [10, 10, 100, 80],
          "svg": '<use href="#lib-heart" transform="translate(50 40) scale(2)" color="#ff4d6d"/>'}]},
+    "limb": {"ops": [
+        {"op": "limb", "layer": "l1", "joints": [[10, 10], [60, 50], [110, 90]], "start_size": 24,
+         "end_size": 10, "fill": "#e8a86e", "outline": "#9a6a46", "width": 2}]},
 }
 
 

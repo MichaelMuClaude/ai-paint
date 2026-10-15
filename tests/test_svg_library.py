@@ -121,3 +121,10 @@ def test_elements_command(tmp_path):
     assert rows == [{"id": "dot", "tag": "circle"}]
     missing = run("elements", str(path), "nope")
     assert missing.returncode == 1 and "no svg op" in missing.stderr
+
+
+def test_new_parts_are_present():
+    parts = svgrender.library()
+    for name in ("lib-hair-bob", "lib-hair-ponytail", "lib-hand-open", "lib-hand-fist",
+                "lib-speed-lines", "lib-impact-burst", "lib-thought-bubble"):
+        assert name in parts, name

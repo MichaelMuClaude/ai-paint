@@ -46,6 +46,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 | `erase` | Make a `rect` or `ellipse` box transparent on its own layer. `opacity` 1 removes it fully. |
 | `balloon` | A speech balloon: an ellipse around centred text, with a `tail` that points at a character. Text uses `size`, and `font` takes a CJK font for Chinese or Japanese. |
 | `svg` | Draw SVG code inside a box on a layer: groups and transforms (rotate, scale, mirror), clip paths, masks, `<use>` to reuse shapes, gradients, blur and drop-shadow filters, and text. Give `svg` (markup) or `file` (a `.svg` file). Scripts, event attributes and outside links are refused. Drawn by the system's librsvg. |
+| `limb` | A tapered capsule through 2 or 3 joints: `[shoulder, hand]` for a straight limb, or `[shoulder, elbow, hand]` for a bend, smoothly curved through the middle joint. Use it for arms, legs, necks and tails instead of a hand-tuned path. |
 | `spline` | A smooth curve through key points you give, so you do not have to work out control points. `closed` loops back to the start. Fill and outline work. |
 | `path` | A shape or line from SVG path data: `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A` (arc), `Z`, absolute or relative. Arc flags are separate `0` or `1` numbers. Curves are smooth. Use it for faces, limbs, clothing, and anything organic. `fill` and `outline` both work. |
 | `fill` | Flood fill from a seed point on its layer. `tolerance` (0 to 255) is the total difference allowed across red, green, blue and alpha, so `6` lets through a pixel that is 2 darker in each of R, G and B. |
@@ -81,7 +82,7 @@ Without an `<svg>` root, the markup's coordinates are the box's own pixels. SVG 
 
 ### The part library
 
-ai-paint ships SVG parts that any `svg` op can use without defining them: anime eyes (open and closed), brows, three mouths, a nose, blush, and manga symbols (sweat drop, anger mark, sparkle, heart, star). Write `<use href="#lib-eye-anime" transform="translate(120 80)" color="#3f7fe0"/>` and the part is added for you. Most parts take their colour from `color`, and `scale(-1 1)` mirrors them.
+ai-paint ships SVG parts that any `svg` op can use without defining them: anime eyes (open and closed), brows, three mouths, a nose, blush, two hairstyles (bob, ponytail), two hand poses (open, fist), and manga symbols and effects (sweat drop, anger mark, sparkle, heart, star, speed lines, impact burst, thought bubble). Write `<use href="#lib-eye-anime" transform="translate(120 80)" color="#3f7fe0"/>` and the part is added for you. Most parts take their colour from `color`, and `scale(-1 1)` mirrors them.
 
 ```bash
 ai-paint parts                                        # list the parts and what they look like

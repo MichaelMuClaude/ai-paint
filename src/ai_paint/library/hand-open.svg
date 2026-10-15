@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Open hand with four fingers and a thumb, about 54x60, centred on 0,0 at the wrist, fingers pointing up. Colour from color="..." (skin tone).</desc>
+  <defs>
+    <g id="lib-hand-open" fill="currentColor" stroke="#9a6a46" stroke-width="1.2">
+      <path d="M -16 2 C -18 -30 -8 -30 -7 2 Z"/>
+      <path d="M -5 -2 C -6 -36 4 -36 4 -2 Z"/>
+      <path d="M 6 -2 C 5 -34 15 -34 15 -2 Z"/>
+      <path d="M 17 2 C 16 -28 25 -28 25 2 Z"/>
+      <path d="M -22 8 C -32 -6 -24 -16 -16 -8 Z"/>
+      <path d="M -20 4 C -20 22 18 24 26 6 L 26 20 C 18 32 -18 30 -20 16 Z"/>
+    </g>
+  </defs>
+</svg>

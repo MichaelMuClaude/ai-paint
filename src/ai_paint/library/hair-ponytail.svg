@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Ponytail hairstyle: a cap over the head plus a tail swinging to one side, about 170x220, centred on 0,0 at the top of the head. Colour from color="...". Mirror with scale(-1 1) to swing the tail the other way.</desc>
+  <defs>
+    <g id="lib-hair-ponytail">
+      <path d="M -80 -4 C -88 -90 88 -90 80 -4 C 78 24 66 42 50 50 C 60 30 58 10 46 -4
+               C 30 10 10 16 -10 14 C -28 12 -46 2 -58 -16 C -66 2 -74 -2 -80 -4 Z" fill="currentColor"/>
+      <path d="M 50 20 C 90 34 108 80 96 140 C 90 170 70 196 48 210 C 66 176 72 140 62 108
+               C 54 80 38 54 50 20 Z" fill="currentColor"/>
+    </g>
+  </defs>
+</svg>

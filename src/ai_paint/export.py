@@ -219,6 +219,14 @@ def _op_elements(builder, raw, name, v, size) -> list[str]:
         points = svgpath.spline(v["points"], closed=v["closed"])
         d = "M " + " L ".join(f"{_n(x)} {_n(y)}" for x, y in points) + (" Z" if v["closed"] else "")
         return _filled_and_outlined(builder, lambda attrs: f'<path d="{d}" {attrs}/>', v)
+    if name == "limb":
+        outline = raster.limb_outline(v["joints"], v["start_size"] / 2, v["end_size"] / 2)
+        d = "M " + " L ".join(f"{_n(x)} {_n(y)}" for x, y in outline) + " Z"
+        out = [f'<path d="{d}" fill-rule="nonzero" {builder.paint("fill", v["fill"])}/>']
+        if v["outline"] is not None:
+            out.append(f'<path d="{d}" fill="none" {builder.paint("stroke", v["outline"])} '
+                       f'stroke-width="{_n(v["width"])}" stroke-linejoin="round"/>')
+        return out
     if name == "stroke":
         return _stroke_elements(builder, v)
     if name == "text":

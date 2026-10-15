@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Bob hairstyle that frames a head, about 164x120, centred on 0,0 at the top of the head. Colour from color="...".</desc>
+  <defs>
+    <path id="lib-hair-bob" d="M -82 -6 C -90 -96 90 -96 82 -6 L 86 70 L 60 60 L 62 0 L -62 0 L -60 60 L -86 70 Z"
+          fill="currentColor" stroke-width="2"/>
+  </defs>
+</svg>

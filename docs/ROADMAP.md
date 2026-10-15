@@ -28,7 +28,7 @@ Drawing with SVG code gave far better results than ai-paint's own shape ops, bec
 
 - Phase 1 (done): the `svg` op, a part library (`lib-*`), and element edits by id (`svg_set`, `svg_remove`, `svg_replace`, `ai-paint elements`).
 - Phase 2 (export done): `ai-paint export DOC -o page.svg` compiles the whole document into one SVG with Inkscape layers. Every op type is compiled to SVG elements; flood-fill layers are embedded as pictures. Tests compare each op type's export with the native render. Still open: making the SVG the main render path, once the export has proven itself on real pages.
-- Phase 3: more parts (hair styles, hands, clothes, speech balloon shapes, speed lines and other manga effects), and poses built from a skeleton of reusable limbs.
+- Phase 3 (in progress): a `limb` op (tapered capsule through 2-3 joints, replacing hand-tuned arm/leg paths) and more parts: two hairstyles, two hand poses, and manga effects (speed lines, impact burst, thought bubble). Tested by redrawing the captain's arm and hand; the result had real fingers gripping the hat brim instead of a floating round blob. Still open: clothing parts, more hairstyles, a proper multi-limb pose/skeleton helper for a whole body at once.
 
 ## What other open-source projects teach us
 

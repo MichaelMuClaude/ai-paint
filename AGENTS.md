@@ -26,7 +26,7 @@ src/ai_paint/
   gradient.py  linear and radial gradient fills
   svgrender.py SVG allow-list check, drawing through the system's librsvg and cairo (ctypes),
                the part library loader, and element edits by id
-  library/     built-in SVG parts; each file holds one part whose ids all start with lib-<file name>
+  library/     built-in SVG parts (eyes, hair, hands, mouths, manga effects); each file's ids start with lib-<file name>
   export.py    compiles a whole document into one SVG (Inkscape layers, filters, masks, patterns)
   document.py  document schema, validation, rendering, apply, save
   view.py      grid overlay, crop and zoom (for looking only)

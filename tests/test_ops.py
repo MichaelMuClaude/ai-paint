@@ -18,7 +18,7 @@ def _render(*op_list, width=100, height=100, background="#ffffff"):
 
 
 def test_registry_has_the_drawing_operations():
-    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path", "balloon", "spline", "svg"}
+    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path", "balloon", "spline", "svg", "limb"}
     for operation in ops.OPERATIONS.values():
         assert operation.summary
         assert operation.params
@@ -434,3 +434,27 @@ def test_balloon_tail_reaches_towards_its_target():
     assert img.getpixel((70, 70))[0] < 100  # part of the tail's outline lies on the way
     near_tip = [img.getpixel((x, y))[0] for x in range(86, 95) for y in range(86, 95)]
     assert min(near_tip) < 200  # the outline reaches the tip, allowing for anti-aliasing
+
+
+def test_limb_straight_tapers_from_start_to_end_size():
+    img = _render({"op": "limb", "layer": "l1", "joints": [[10, 50], [90, 50]], "start_size": 30,
+                   "end_size": 8, "fill": "#000000"}, width=100, height=100)
+
+    def ink(x):
+        return sum(1 for y in range(100) if img.getpixel((x, y))[0] < 128)
+
+    assert ink(12) > ink(88) + 10
+
+
+def test_limb_bent_passes_near_the_elbow():
+    outline = raster.limb_outline([[10, 10], [50, 80], [90, 10]], 10, 10)
+    xs = [p[0] for p in outline]
+    ys = [p[1] for p in outline]
+    assert max(ys) > 70  # the capsule bulges down towards the elbow
+    assert min(xs) < 15 and max(xs) > 85  # and still reaches both ends
+
+
+def test_limb_needs_two_or_three_joints():
+    with pytest.raises(PaintError, match="2 or 3 points"):
+        ops.normalise({"op": "limb", "layer": "l1", "joints": [[1, 1]], "start_size": 10, "end_size": 10,
+                       "fill": "red"}, (100, 100))

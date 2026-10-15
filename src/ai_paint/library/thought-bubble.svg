@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Thought-bubble shape (a cloud outline) plus two trailing circles, about 200x140 for the cloud, centred on 0,0. Fill it yourself with a rect/ellipse clipped to #lib-thought-bubble-clip, or use the ready-made #lib-thought-bubble group with color="..." for the fill.</desc>
+  <defs>
+    <path id="lib-thought-bubble-shape" d="M -70 10 C -96 10 -96 -24 -74 -28 C -78 -50 -52 -58 -38 -46
+             C -30 -62 2 -62 10 -46 C 30 -60 58 -48 54 -28 C 76 -26 80 6 56 14 C 60 30 38 42 20 32
+             C 10 42 -14 42 -24 32 C -42 40 -62 28 -70 10 Z"/>
+    <clipPath id="lib-thought-bubble-clip"><use href="#lib-thought-bubble-shape"/></clipPath>
+    <g id="lib-thought-bubble">
+      <use href="#lib-thought-bubble-shape" fill="currentColor" stroke="#000000" stroke-width="2.5"/>
+      <circle cx="-82" cy="34" r="10" fill="currentColor" stroke="#000000" stroke-width="2"/>
+      <circle cx="-98" cy="54" r="5" fill="currentColor" stroke="#000000" stroke-width="1.6"/>
+    </g>
+  </defs>
+</svg>

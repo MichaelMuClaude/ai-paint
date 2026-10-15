@@ -289,6 +289,31 @@ _register(
 )
 
 
+def _draw_limb(layer, v, size):
+    outline = raster.limb_outline(v["joints"], v["start_size"] / 2, v["end_size"] / 2)
+    raster.draw_shape(layer, "polygon", outline, v["fill"], v["opacity"], filled=True)
+    if v["outline"] is not None:
+        raster.draw_shape(layer, "polygon", outline, v["outline"], v["opacity"], filled=False, width=v["width"])
+
+
+_register(
+    "limb",
+    "A tapered capsule through 2 or 3 joints: [shoulder, hand] for a straight limb, or "
+    "[shoulder, elbow, hand] for a bent one, smoothly curved through the middle joint. "
+    "Use it for arms, legs, necks and tails instead of guessing a path by hand.",
+    [
+        Param("joints", "joints", "[shoulder, hand] or [shoulder, elbow, hand], each a point [x, y]"),
+        Param("start_size", "float", "Diameter at the first joint", minimum=1, maximum=MAX_SIZE_PX),
+        Param("end_size", "float", "Diameter at the last joint", minimum=1, maximum=MAX_SIZE_PX),
+        FILL,
+        Param("outline", "paint", "Outline colour or gradient", required=False),
+        WIDTH,
+        OPACITY,
+    ],
+    _draw_limb,
+)
+
+
 def _draw_path(layer, v, size):
     if v["fill"] is not None:
         raster.draw_path(layer, v["d"], v["fill"], v["opacity"], filled=True,

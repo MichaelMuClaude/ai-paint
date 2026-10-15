@@ -30,6 +30,7 @@ To hand a picture over for editing in Inkscape, run `ai-paint export drawing.jso
 - To centre text on a point, use `"align": "center", "valign": "middle"`. Do not estimate the text width.
 - Use the built-in parts before drawing your own: `ai-paint parts` lists eyes, brows, mouths, blush and manga symbols (`<use href="#lib-eye-anime" color="#3f7fe0"/>`). Define a character's head once in `<defs>` and reuse it for every pose or mood.
 - Give elements ids, then adjust them with `svg_set`, `svg_remove` and `svg_replace` in a changes file instead of rewriting the SVG. `ai-paint elements DOC OP_ID` lists them.
+- For an arm, leg, neck or tail, use `limb` with 2 or 3 joint points instead of guessing a `path` or `stroke` by hand. It tapers smoothly and bends through the middle joint.
 - For characters and detailed drawings, prefer the `svg` op: write SVG with `<defs>`, `<use>` (mirror symmetric parts with `scale(-1 1)`), `clipPath` (keep an iris inside its eye), gradients, and `feGaussianBlur` for blush and shadows. It gives far better results than placing shapes one by one.
 - For organic shapes (faces, limbs, clothes), use `path` with curves or arcs (`A`). Plain rectangles and ellipses look blocky.
 - For a limb, use one `stroke` with `size` and `size_end`, so it thins from shoulder to wrist. It is easier than a closed path.

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc>Closed fist, about 44x46, centred on 0,0 at the wrist. Colour from color="..." (skin tone).</desc>
+  <defs>
+    <g id="lib-hand-fist" fill="currentColor" stroke="#9a6a46" stroke-width="1.2">
+      <path d="M -20 10 C -22 -8 -10 -20 6 -20 C 20 -20 22 -4 20 10 C 18 22 -16 24 -20 10 Z"/>
+      <path d="M -10 -8 L 16 -8 M -12 0 L 17 0 M -12 8 L 16 8" stroke="#00000022" stroke-width="2" fill="none"/>
+      <path d="M -6 -20 C -14 -28 -8 -34 0 -30 C 2 -36 10 -34 8 -27 C 14 -30 18 -22 12 -18 Z"/>
+    </g>
+  </defs>
+</svg>

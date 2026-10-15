@@ -13,6 +13,7 @@ from functools import lru_cache
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
+from ai_paint import svgpath
 from ai_paint.errors import PaintError
 
 AA = 3  # samples per pixel along each axis, so each pixel is averaged from AA x AA samples
@@ -321,6 +322,34 @@ def place_image(layer: Image.Image, image: Image.Image, xy: list, opacity: float
     piece = image.crop((region[0] - x, region[1] - y, region[2] - x, region[3] - y))
     existing = layer.crop(region)
     layer.paste(Image.alpha_composite(existing, piece), region[:2])
+
+
+def limb_outline(joints: list, start_radius: float, end_radius: float) -> list:
+    """The outline of a tapered capsule through 2 or 3 joints (shoulder[-elbow]-hand), as a closed polygon.
+
+    The centreline is a Catmull-Rom spline through the joints (straight if there are only 2). The radius
+    changes evenly along its length from `start_radius` to `end_radius`. Returns points for a single
+    closed subpath, suitable for `shape_coverage`/`path_coverage` with `filled=True`.
+    """
+    centre = svgpath.spline(joints) if len(joints) > 2 else list(joints)
+    lengths = [0.0]
+    for (x0, y0), (x1, y1) in zip(centre, centre[1:]):
+        lengths.append(lengths[-1] + math.hypot(x1 - x0, y1 - y0))
+    total = lengths[-1] or 1.0
+    left, right = [], []
+    for i, (x, y) in enumerate(centre):
+        radius = start_radius + (end_radius - start_radius) * lengths[i] / total
+        if i == 0:
+            dx, dy = centre[1][0] - x, centre[1][1] - y
+        elif i == len(centre) - 1:
+            dx, dy = x - centre[i - 1][0], y - centre[i - 1][1]
+        else:
+            dx, dy = centre[i + 1][0] - centre[i - 1][0], centre[i + 1][1] - centre[i - 1][1]
+        norm = math.hypot(dx, dy) or 1.0
+        nx, ny = -dy / norm, dx / norm
+        left.append((x + nx * radius, y + ny * radius))
+        right.append((x - nx * radius, y - ny * radius))
+    return left + list(reversed(right))
 
 
 def _font(size: int, font_path: str | None):

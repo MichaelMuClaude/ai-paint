@@ -1,0 +1,526 @@
+{
+ "layers": [
+  {
+   "id": "sky"
+  },
+  {
+   "id": "clouds",
+   "blur": 3
+  },
+  {
+   "id": "back"
+  },
+  {
+   "id": "body",
+   "outline": {
+    "colour": "#2b1a10",
+    "width": 2
+   }
+  },
+  {
+   "id": "skin"
+  },
+  {
+   "id": "head",
+   "outline": {
+    "colour": "#2b1a10",
+    "width": 2
+   }
+  },
+  {
+   "id": "face"
+  },
+  {
+   "id": "hat",
+   "outline": {
+    "colour": "#5a3a1a",
+    "width": 2
+   }
+  },
+  {
+   "id": "hair"
+  },
+  {
+   "id": "words"
+  }
+ ],
+ "ops": [
+  {
+   "id": "sky-grad",
+   "op": "rect",
+   "layer": "sky",
+   "box": [
+    0,
+    0,
+    740,
+    415
+   ],
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     0
+    ],
+    "to": [
+     0,
+     415
+    ],
+    "stops": [
+     [
+      0,
+      "#2f8fe8"
+     ],
+     [
+      0.7,
+      "#9fd6ff"
+     ],
+     [
+      1,
+      "#d9f0ff"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "sun",
+   "op": "ellipse",
+   "layer": "sky",
+   "box": [
+    560,
+    -60,
+    260,
+    260
+   ],
+   "fill": {
+    "type": "radial",
+    "centre": [
+     690,
+     70
+    ],
+    "radius": 130,
+    "stops": [
+     [
+      0,
+      "#ffffffdd"
+     ],
+     [
+      1,
+      "#ffffff00"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "o1",
+   "op": "ellipse",
+   "layer": "clouds",
+   "box": [
+    -40,
+    300,
+    220,
+    90
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "id": "o2",
+   "op": "ellipse",
+   "layer": "clouds",
+   "box": [
+    60,
+    330,
+    160,
+    70
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "id": "o3",
+   "op": "ellipse",
+   "layer": "clouds",
+   "box": [
+    600,
+    190,
+    190,
+    80
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "id": "o4",
+   "op": "ellipse",
+   "layer": "clouds",
+   "box": [
+    640,
+    240,
+    140,
+    60
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "id": "vest",
+   "op": "path",
+   "layer": "back",
+   "d": "M 318 262 C 340 240 400 240 422 262 L 436 360 C 400 372 350 372 304 360 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     240
+    ],
+    "to": [
+     0,
+     372
+    ],
+    "stops": [
+     [
+      0,
+      "#e63946"
+     ],
+     [
+      1,
+      "#9d1c26"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "shorts",
+   "op": "path",
+   "layer": "back",
+   "d": "M 304 355 L 436 355 L 440 412 L 300 412 Z",
+   "fill": "#2b4a7a"
+  },
+  {
+   "id": "neck",
+   "op": "path",
+   "layer": "skin",
+   "d": "M 350 226 L 390 226 L 394 262 L 346 262 Z",
+   "fill": "#e8a86e"
+  },
+  {
+   "id": "head",
+   "op": "ellipse",
+   "layer": "head",
+   "box": [
+    310,
+    108,
+    120,
+    128
+   ],
+   "fill": {
+    "type": "radial",
+    "centre": [
+     345,
+     140
+    ],
+    "radius": 120,
+    "stops": [
+     [
+      0,
+      "#f8d19a"
+     ],
+     [
+      1,
+      "#d9955a"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "hair-back",
+   "op": "path",
+   "layer": "hair",
+   "d": "M 318 150 C 300 190 304 230 322 250 L 336 224 C 330 200 330 170 336 146 Z",
+   "fill": "#1b1b1b"
+  },
+  {
+   "id": "hair-back-r",
+   "op": "path",
+   "layer": "hair",
+   "d": "M 422 150 C 440 190 436 230 418 250 L 404 224 C 410 200 410 170 404 146 Z",
+   "fill": "#1b1b1b"
+  },
+  {
+   "id": "hat-crown",
+   "op": "path",
+   "layer": "hat",
+   "d": "M 330 128 C 326 66 414 66 410 128 C 414 136 326 136 330 128 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     66
+    ],
+    "to": [
+     0,
+     136
+    ],
+    "stops": [
+     [
+      0,
+      "#f2d58a"
+     ],
+     [
+      1,
+      "#c8963e"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "hat-brim",
+   "op": "path",
+   "layer": "hat",
+   "d": "M 262 130 C 280 112 460 112 478 130 C 470 148 270 148 262 130 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     112
+    ],
+    "to": [
+     0,
+     148
+    ],
+    "stops": [
+     [
+      0,
+      "#f7dc96"
+     ],
+     [
+      1,
+      "#b98530"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "hat-band",
+   "op": "path",
+   "layer": "hat",
+   "d": "M 330 110 C 370 104 370 104 410 110 L 412 122 C 370 116 370 116 328 122 Z",
+   "fill": "#c1121f"
+  },
+  {
+   "id": "eye-l",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    334,
+    156,
+    22,
+    24
+   ],
+   "fill": "#ffffff",
+   "outline": "#2b1a10",
+   "width": 1.5
+  },
+  {
+   "id": "eye-r",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    384,
+    156,
+    22,
+    24
+   ],
+   "fill": "#ffffff",
+   "outline": "#2b1a10",
+   "width": 1.5
+  },
+  {
+   "id": "o5",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    341,
+    164,
+    12,
+    14
+   ],
+   "fill": "#111111"
+  },
+  {
+   "id": "o6",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    391,
+    164,
+    12,
+    14
+   ],
+   "fill": "#111111"
+  },
+  {
+   "id": "o7",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    343,
+    165,
+    4,
+    4
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "id": "o8",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    393,
+    165,
+    4,
+    4
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "id": "o9",
+   "op": "path",
+   "layer": "face",
+   "d": "M 330 148 Q 344 138 358 146",
+   "outline": "#2b1a10",
+   "width": 2.5
+  },
+  {
+   "id": "o10",
+   "op": "path",
+   "layer": "face",
+   "d": "M 382 146 Q 396 138 410 148",
+   "outline": "#2b1a10",
+   "width": 2.5
+  },
+  {
+   "id": "o11",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    366,
+    176,
+    8,
+    6
+   ],
+   "fill": "#c98a5a"
+  },
+  {
+   "id": "grin",
+   "op": "path",
+   "layer": "face",
+   "d": "M 330 196 C 348 236 392 236 410 196 C 392 212 348 212 330 196 Z",
+   "fill": "#7a1f2b"
+  },
+  {
+   "id": "o12",
+   "op": "path",
+   "layer": "face",
+   "d": "M 336 200 C 350 216 390 216 404 200 L 404 208 C 390 224 350 224 336 208 Z",
+   "fill": "#ffffff"
+  },
+  {
+   "id": "o13",
+   "op": "path",
+   "layer": "face",
+   "d": "M 330 196 C 348 236 392 236 410 196",
+   "outline": "#2b1a10",
+   "width": 2
+  },
+  {
+   "id": "o14",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    315,
+    186,
+    16,
+    12
+   ],
+   "fill": "#ff8a8a"
+  },
+  {
+   "id": "o15",
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    409,
+    186,
+    16,
+    12
+   ],
+   "fill": "#ff8a8a"
+  },
+  {
+   "id": "title",
+   "op": "text",
+   "layer": "words",
+   "text": "Cap'n",
+   "point": [
+    40,
+    30
+   ],
+   "size": 34,
+   "colour": "#ffffff",
+   "font": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+  },
+  {
+   "id": "raised-arm",
+   "op": "limb",
+   "layer": "skin",
+   "joints": [
+    [
+     330,
+     262
+    ],
+    [
+     300,
+     185
+    ],
+    [
+     278,
+     118
+    ]
+   ],
+   "start_size": 36,
+   "end_size": 26,
+   "fill": "#e8a86e"
+  },
+  {
+   "id": "free-arm",
+   "op": "limb",
+   "layer": "skin",
+   "joints": [
+    [
+     422,
+     262
+    ],
+    [
+     446,
+     300
+    ],
+    [
+     434,
+     350
+    ]
+   ],
+   "start_size": 32,
+   "end_size": 24,
+   "fill": "#e8a86e"
+  },
+  {
+   "id": "hand-open",
+   "op": "svg",
+   "layer": "skin",
+   "box": [
+    240,
+    85,
+    70,
+    70
+   ],
+   "svg": "<use href=\"#lib-hand-open\" transform=\"translate(35 50) rotate(-160) scale(0.85)\" color=\"#e8a86e\"/>"
+  }
+ ]
+}

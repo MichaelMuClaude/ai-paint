@@ -131,3 +131,13 @@ Test: a four-mood expression sheet took 69 lines of SVG, and it is the clearest 
 `ai-paint export` compiles a document into one SVG. Three earlier documents exported with no layer turned into a picture, and librsvg's render of each export matched ai-paint's own: mean difference 0.29 (captain), 1.57 (pirate king) and 0.96 (manga page) on a 0 to 255 scale. The visible difference is a slightly softer layer outline in the SVG.
 
 Decision: keep ai-paint's own renderer as the main render path for now, because 181 pixel-level tests rest on it. Switch to rendering through the exported SVG only after the export has been used on more real pages.
+
+## Round 12: a limb-drawing tool, and more library parts
+
+Every arm and leg so far was a hand-tuned path or tapered stroke, redone by trial and render each time. Added `limb`: a tapered capsule through 2 or 3 joints (shoulder[-elbow]-hand), curved smoothly through the middle joint, taper computed exactly rather than eyeballed.
+
+Test: redrew the straw-hat captain's raised arm with `limb` plus the new `lib-hand-open` part. First pass left the old round hand-blob op in place by mistake (an orphan shape, visible as a floating circle above the fingers) — removed it once spotted in a zoomed render. Result: the hand's fingers visibly grip the hat brim, and the arm tapers smoothly shoulder to wrist, both clear improvements over the earlier hand-drawn arm.
+
+Also added two hairstyles (bob, ponytail), two hand poses (open, fist), and three manga effects (speed lines, impact burst, thought bubble) — checked each renders as intended with a small preview sheet before committing.
+
+Mistake caught before committing: initially overwrote `examples/pirate-king-changes.json` (a changes file for a different, earlier composition) with the new captain document. Reverted via git before it was committed, then saved the new picture under its own name (`captain-limb-changes.json`).

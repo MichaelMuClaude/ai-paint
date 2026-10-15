@@ -196,6 +196,10 @@ def coerce(param: Param, value, size: tuple[int, int], base: Path | None = None)
         if not isinstance(value, bool):
             raise PaintError(f"{param.name} must be true or false")
         return value
+    if kind == "joints":
+        if not isinstance(value, list) or not 2 <= len(value) <= 3:
+            raise PaintError(f"{param.name} needs 2 or 3 points: [shoulder, hand] or [shoulder, elbow, hand]")
+        return [_point(param, item, size) for item in value]
     if kind == "colour":
         try:
             return parse_colour(value)
