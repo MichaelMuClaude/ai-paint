@@ -151,6 +151,26 @@ _register(
 )
 
 
+def _draw_text(layer, v, size):
+    raster.draw_text(layer, v["text"], v["point"], v["size"], v["font"], v["colour"], v["opacity"])
+
+
+_register(
+    "text",
+    "Write text with its top-left corner at a point. Use \\n inside the text for a new line.",
+    [
+        Param("text", "text", "The text to write"),
+        Param("point", "point", "Top-left corner [x, y] of the text in pixels"),
+        Param("size", "int", "Font size in pixels", minimum=4, maximum=500),
+        Param("colour", "colour", "Text colour"),
+        Param("font", "path", "Optional .ttf or .otf font file, as an absolute path. "
+              "The built-in font is Latin only; use a font file for other scripts.", required=False),
+        OPACITY,
+    ],
+    _draw_text,
+)
+
+
 def normalise(raw, size: tuple[int, int]) -> tuple[str, dict]:
     """Check one operation dict and return (name, values). Raises PaintError with a clear message."""
     if not isinstance(raw, dict):

@@ -3,6 +3,7 @@
 import math
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 from PIL import ImageColor
 
@@ -10,13 +11,14 @@ from ai_paint.errors import PaintError
 
 COORD_LIMIT = 100_000
 MAX_SIZE = 10_000
+MAX_TEXT = 500
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
 
 
 @dataclass(frozen=True)
 class Param:
     name: str
-    kind: str  # int, float, bool, colour, point, points, box, choice
+    kind: str  # int, float, bool, colour, point, points, box, choice, text, path
     summary: str
     required: bool = True
     default: object = None
@@ -114,5 +116,17 @@ def coerce(param: Param, value, size: tuple[int, int]):
     if kind == "choice":
         if value not in param.choices:
             raise PaintError(f"{param.name} must be one of: {', '.join(param.choices)}")
+        return value
+    if kind == "text":
+        if not isinstance(value, str) or not value.strip():
+            raise PaintError(f"{param.name} must be text that is not empty")
+        if len(value) > MAX_TEXT:
+            raise PaintError(f"{param.name} must be at most {MAX_TEXT} characters")
+        return value
+    if kind == "path":
+        if not isinstance(value, str) or not value.lower().endswith((".ttf", ".otf")):
+            raise PaintError(f"{param.name} must be a .ttf or .otf font file")
+        if not Path(value).is_file():
+            raise PaintError(f"{param.name} file does not exist: {value}")
         return value
     raise AssertionError(f"unknown parameter kind {kind}")

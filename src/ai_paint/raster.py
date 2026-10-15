@@ -10,7 +10,7 @@ to hold them, and then averaged back down. Edges therefore get partial coverage 
 import math
 from functools import lru_cache
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 from ai_paint.errors import PaintError
 
@@ -196,6 +196,29 @@ def draw_shape(layer: Image.Image, shape: str, coords: list, colour: tuple, opac
     else:
         raise AssertionError(f"unknown shape {shape}")
     paint(layer, sampler.finish(), region, colour, opacity)
+
+
+def _font(size: int, font_path: str | None):
+    try:
+        if font_path is None:
+            return ImageFont.load_default(size=size)
+        return ImageFont.truetype(font_path, size)
+    except OSError as exc:
+        raise PaintError(f"could not load font {font_path}: {exc}") from exc
+
+
+def draw_text(layer: Image.Image, text: str, xy: list, size: int, font_path: str | None,
+              colour: tuple, opacity: float) -> None:
+    """Write text with its top-left corner at `xy`. Lines are separated by newlines."""
+    font = _font(size, font_path)
+    measure = ImageDraw.Draw(Image.new("L", (1, 1)))
+    left, top, right, bottom = measure.multiline_textbbox((xy[0], xy[1]), text, font=font)
+    region = _region([[left, top], [right, bottom]], 1, layer.size)
+    if region is None:
+        return
+    mask = Image.new("L", (region[2] - region[0], region[3] - region[1]), 0)
+    ImageDraw.Draw(mask).multiline_text((xy[0] - region[0], xy[1] - region[1]), text, fill=255, font=font)
+    paint(layer, mask, region, colour, opacity)
 
 
 def flood_fill(layer: Image.Image, seed: list, colour: tuple, tolerance: int) -> None:

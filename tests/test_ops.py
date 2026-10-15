@@ -16,8 +16,8 @@ def _render(*op_list, width=100, height=100, background="#ffffff"):
     return document.render(doc)
 
 
-def test_registry_has_the_six_first_ops():
-    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill"}
+def test_registry_has_the_drawing_operations():
+    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text"}
     for operation in ops.OPERATIONS.values():
         assert operation.summary
         assert operation.params
@@ -203,3 +203,46 @@ def test_box_covers_exactly_its_width_in_pixels():
     img = _render({"op": "rect", "layer": "l1", "box": [10, 10, 20, 20], "fill": "#000000"})
     assert img.getpixel((29, 10)) == BLACK
     assert img.getpixel((30, 10)) == WHITE
+
+
+def test_text_is_drawn_inside_its_box_and_nowhere_else():
+    img = _render({"op": "text", "layer": "l1", "text": "Hi", "point": [10, 10], "size": 20, "colour": "#000000"},
+                  width=120, height=60)
+    inked = [(x, y) for x in range(120) for y in range(60) if img.getpixel((x, y))[0] < 128]
+    assert inked
+    assert all(10 <= x < 60 and 10 <= y < 40 for x, y in inked)
+
+
+def test_multiline_text_is_taller_than_one_line():
+    one = _render({"op": "text", "layer": "l1", "text": "Hi", "point": [5, 5], "size": 16, "colour": "#000000"},
+                  width=100, height=100)
+    two = _render({"op": "text", "layer": "l1", "text": "Hi\nHi", "point": [5, 5], "size": 16, "colour": "#000000"},
+                  width=100, height=100)
+
+    def bottom(img):
+        return max(y for x in range(100) for y in range(100) if img.getpixel((x, y))[0] < 128)
+
+    assert bottom(two) > bottom(one) + 10
+
+
+def test_text_partly_off_the_canvas_is_clipped_not_an_error():
+    img = _render({"op": "text", "layer": "l1", "text": "Edge", "point": [90, 90], "size": 30, "colour": "#000000"})
+    assert img.size == (100, 100)
+
+
+def test_text_font_file_must_exist_and_be_a_font():
+    with pytest.raises(PaintError, match="file does not exist"):
+        ops.normalise({"op": "text", "layer": "l1", "text": "x", "point": [0, 0], "size": 10,
+                       "colour": "red", "font": "/nonexistent/font.ttf"}, (100, 100))
+    with pytest.raises(PaintError, match=r"must be a \.ttf or \.otf"):
+        ops.normalise({"op": "text", "layer": "l1", "text": "x", "point": [0, 0], "size": 10,
+                       "colour": "red", "font": "photo.png"}, (100, 100))
+
+
+def test_text_must_not_be_empty_or_too_long():
+    with pytest.raises(PaintError, match="must be text that is not empty"):
+        ops.normalise({"op": "text", "layer": "l1", "text": "   ", "point": [0, 0], "size": 10, "colour": "red"},
+                      (100, 100))
+    with pytest.raises(PaintError, match="at most 500 characters"):
+        ops.normalise({"op": "text", "layer": "l1", "text": "x" * 501, "point": [0, 0], "size": 10,
+                       "colour": "red"}, (100, 100))

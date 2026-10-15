@@ -1,6 +1,6 @@
 # ai-paint: design notes
 
-Status: version 0.1.0 has the document format, validation, six drawing operations, rendering, and the CLI. 57 tests pass. Text, image placement, and erase are not built yet.
+Status: version 0.1.0 has the document format, validation, seven drawing operations (including anti-aliased shapes, strokes and text), rendering, grid and zoom views, and the CLI. 78 tests pass. Image placement and erase are not built yet.
 
 ## Why build it
 
@@ -66,10 +66,8 @@ Text, image placement, and erase come next.
 
 ## Next steps
 
-1. Text, using a font file the user supplies (the same rule as ai-photoshop).
-2. Anti-aliased shape edges.
-3. `place` (paste a PNG onto a layer) and `erase`.
-4. A tile cache, if large canvases become slow.
+1. `place` (paste a PNG onto a layer) and `erase`.
+2. A tile cache, if large canvases become slow.
 
 ## Open questions for the user
 

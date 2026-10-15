@@ -41,6 +41,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 | `rect` | A rectangle given as `[x, y, width, height]`, with `fill`, `outline`, or both |
 | `ellipse` | An ellipse inside the same kind of box |
 | `polygon` | A closed shape through a list of points, with `fill`, `outline`, or both |
+| `text` | Text with its top-left corner at a point, in a `size` in pixels. Use `\n` for a new line. The built-in font covers Latin letters; pass `font` (an absolute path to a `.ttf` or `.otf` file) for other scripts. |
 | `fill` | Flood fill from a seed point on its layer. `tolerance` (0 to 255) is the total difference allowed across red, green, blue and alpha, so `6` lets through a pixel that is 2 darker in each of R, G and B. |
 
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). The `fill` op sets pixels to the colour and does not blend.
@@ -87,7 +88,8 @@ Requires Python 3.10 or newer.
 - Canvas up to 10,000 pixels on each side and 25 million pixels in total. Each layer is held in memory at full canvas size.
 - A stroke can have up to 5,000 points and 200,000 dabs.
 - Each shape or stroke needs up to nine times its own area of temporary memory while it is drawn.
-- There is no text, image placement, or erase operation yet.
+- The built-in font is Latin only. Other scripts need a `font` file.
+- There is no image placement or erase operation yet.
 
 ## Licence
 
