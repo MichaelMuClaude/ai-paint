@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-paint"
+version = "0.1.0"
+description = "Draw pictures from a JSON document of explicit operations that an AI agent can write, check, and render"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = ["pillow>=10.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+ai-paint = "ai_paint.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_paint"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
