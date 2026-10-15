@@ -6,6 +6,7 @@ from ai_paint.errors import PaintError
 from ai_paint.gradient import Gradient
 
 WHITE = (255, 255, 255, 255)
+BLACK = (0, 0, 0, 255)
 
 
 def _render(*op_list, width=100, height=100, background="#ffffff"):
@@ -195,3 +196,12 @@ def test_screentone_fill_draws_on_a_layer_and_is_validated():
     with pytest.raises(PaintError, match="density must be"):
         ops.normalise({"op": "rect", "layer": "l1", "box": [0, 0, 5, 5],
                        "fill": {"type": "screen", "density": 0}}, (100, 100))
+
+
+def test_evenodd_leaves_a_hole_empty():
+    ring = "M 10 10 L 90 10 L 90 90 L 10 90 Z M 30 30 L 70 30 L 70 70 L 30 70 Z"
+    union = _render({"op": "path", "layer": "l1", "d": ring, "fill": "#000000"})
+    evenodd = _render({"op": "path", "layer": "l1", "d": ring, "fill": "#000000", "fill_rule": "evenodd"})
+    assert union.getpixel((50, 50)) == BLACK  # union fills the hole too
+    assert evenodd.getpixel((50, 50)) == WHITE  # evenodd leaves it empty
+    assert evenodd.getpixel((20, 20)) == BLACK  # the ring itself is still filled

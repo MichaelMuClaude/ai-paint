@@ -228,7 +228,8 @@ _register(
 
 def _draw_path(layer, v, size):
     if v["fill"] is not None:
-        raster.draw_path(layer, v["d"], v["fill"], v["opacity"], filled=True)
+        raster.draw_path(layer, v["d"], v["fill"], v["opacity"], filled=True,
+                         evenodd=v["fill_rule"] == "evenodd")
     if v["outline"] is not None:
         raster.draw_path(layer, v["d"], v["outline"], v["opacity"], filled=False, width=v["width"])
 
@@ -239,6 +240,8 @@ _register(
     "Curves are smooth. Use it for organic shapes such as faces, limbs, and clothes.",
     [
         Param("d", "path", "SVG path data, for example 'M 10 10 C 40 0 60 0 90 10 L 90 60 Z'"),
+        Param("fill_rule", "choice", "union: any subpath is filled. evenodd: holes inside a subpath stay empty, "
+              "used for outlines and rings", required=False, default="union", choices=("union", "evenodd")),
         FILL,
         OUTLINE,
         WIDTH,

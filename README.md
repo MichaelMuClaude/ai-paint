@@ -67,6 +67,10 @@ Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (
 
 - Shapes and strokes are anti-aliased: edges are drawn at three times the resolution and averaged down. Coordinates are continuous, so the point `(x, y)` is a pixel corner, and a box `[x, y, 20, 20]` covers exactly 20 by 20 pixels. Outlines are centred on the box edge.
 
+## Tracing a sketch
+
+`ai-paint trace PICTURE.png -o lines.json` turns the picture's dark lines into smooth path ops. Pixels darker than `--threshold` (default 30) count as lines. The output is a changes file: `apply` it to a canvas of the size the command reports, and the lines appear on their own layer. `--scale` and `--offset` move and resize the traced lines, so a figure can go into a panel. Tracing uses [ImageTracer](src/ai_paint/vendor/README.md), which is public domain, and needs Node.js.
+
 ## Commands
 
 | Command | Purpose |

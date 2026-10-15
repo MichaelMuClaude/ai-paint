@@ -252,10 +252,12 @@ def draw_shape(layer: Image.Image, shape: str, coords: list, colour: tuple, opac
         paint(layer, mask, region, colour, opacity)
 
 
-def path_coverage(size: tuple[int, int], subpaths: list, filled: bool, width: float = 1):
+def path_coverage(size: tuple[int, int], subpaths: list, filled: bool, width: float = 1,
+                  evenodd: bool = False):
     """Coverage of several flattened subpaths, as (region, mask). None if entirely off the picture.
 
-    `subpaths` is a list of (points, closed). A filled path is the union of its subpaths.
+    `subpaths` is a list of (points, closed). A filled path is the union of its subpaths, or, with
+    `evenodd`, the areas covered by an odd number of subpaths, so holes stay empty.
     """
     every_point = [point for points, _ in subpaths for point in points]
     pad = 2 if filled else width / 2 + 2
@@ -263,6 +265,14 @@ def path_coverage(size: tuple[int, int], subpaths: list, filled: bool, width: fl
     if region is None:
         return None
     sampler = _Sampler(region)
+    if filled and evenodd:
+        total = Image.new("L", sampler.big.size, 0)
+        for points, _ in subpaths:
+            piece = Image.new("L", sampler.big.size, 0)
+            ImageDraw.Draw(piece).polygon(sampler.points(points), fill=255)
+            total = ImageChops.difference(total, piece)
+        sampler.big.paste(total)
+        return region, sampler.finish()
     for points, closed in subpaths:
         pts = sampler.points(points)
         if filled:
@@ -274,8 +284,9 @@ def path_coverage(size: tuple[int, int], subpaths: list, filled: bool, width: fl
     return region, sampler.finish()
 
 
-def draw_path(layer: Image.Image, subpaths: list, colour, opacity: float, filled: bool = True, width: float = 1) -> None:
-    coverage = path_coverage(layer.size, subpaths, filled, width)
+def draw_path(layer: Image.Image, subpaths: list, colour, opacity: float, filled: bool = True, width: float = 1,
+              evenodd: bool = False) -> None:
+    coverage = path_coverage(layer.size, subpaths, filled, width, evenodd)
     if coverage is not None:
         region, mask = coverage
         paint(layer, mask, region, colour, opacity)

@@ -132,6 +132,27 @@ def _measure(args) -> int:
     return 0
 
 
+def _trace(args) -> int:
+    from ai_paint.trace import trace_to_changes
+
+    source, output = Path(args.picture), Path(args.output)
+    try:
+        offset = tuple(float(part) for part in args.offset.split(",")) if args.offset else (0.0, 0.0)
+        if len(offset) != 2:
+            raise ValueError
+    except ValueError:
+        return _fail("offset must be two numbers x,y")
+    try:
+        changes, info = trace_to_changes(source, threshold=args.threshold, layer=args.layer,
+                                         colour=args.colour, scale=args.scale, offset=offset)
+        document.save(changes, output, force=args.force)
+    except PaintError as exc:
+        return _fail(str(exc))
+    print(json.dumps({"picture": source.name, "changes": output.name, **info,
+                      "note": "apply the changes to a canvas of canvas_width x canvas_height"}, indent=2))
+    return 0
+
+
 def _ops(args) -> int:
     catalogue = []
     for operation in ops.OPERATIONS.values():
@@ -259,6 +280,18 @@ def main() -> None:
     measure.add_argument("--size", type=int, required=True, help="Font size in pixels")
     measure.add_argument("--font", help="Optional .ttf or .otf font file")
     measure.set_defaults(func=_measure)
+
+    trace = sub.add_parser("trace", help="Trace a picture's dark lines into path ops, as a changes file")
+    trace.add_argument("picture", help="A PNG, JPEG or WebP picture with dark lines")
+    trace.add_argument("-o", "--output", required=True, help="Changes file to write (.json)")
+    trace.add_argument("--threshold", type=int, default=30,
+                       help="Pixels darker than this (0 to 255) count as lines. Default 30.")
+    trace.add_argument("--layer", default="lines", help="Layer id for the traced lines")
+    trace.add_argument("--colour", default="#000000", help="Colour of the traced lines")
+    trace.add_argument("--scale", type=float, default=1.0, help="Size factor for the traced lines")
+    trace.add_argument("--offset", help="Move the lines by x,y pixels, for example 120,80")
+    trace.add_argument("--force", action="store_true", help="Replace the output file if it exists")
+    trace.set_defaults(func=_trace)
 
     catalogue = sub.add_parser("ops", help="List every operation and its parameters as JSON")
     catalogue.set_defaults(func=_ops)

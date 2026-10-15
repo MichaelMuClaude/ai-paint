@@ -13,9 +13,9 @@ Goal: an AI agent can draw a manga page the way a manga artist does: clean line 
 3. **Screentones** (first version done)
    - Done: generated dot screens, as a fill with `density`, `cell` and `angle`. No downloads are needed, so there is no licence issue.
    - Next: line screens and gradient screens.
-4. **Reference sketches**
-   - A `trace` command that turns a user-supplied sketch into path ops.
-   - A reference layer that is shown while drawing but not exported.
+4. **Reference sketches** (first version done)
+   - Done: `ai-paint trace` turns a picture's dark lines into path ops, using ImageTracer (public domain). It was tested on a CC0 figure sheet from OpenGameArt.
+   - Next: cleaning up traced shadow areas, and a reference layer that is shown while drawing but not exported.
 5. **Character construction**
    - A skeleton of bones for pose, with body parts attached to bones, so a pose change moves the whole figure.
 6. **Review loop**

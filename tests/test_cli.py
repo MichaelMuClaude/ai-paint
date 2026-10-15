@@ -172,3 +172,40 @@ def test_new_needs_a_size_or_a_preset(tmp_path):
     result = run("new", str(tmp_path / "x.json"))
     assert result.returncode == 1
     assert "--preset" in result.stderr
+
+
+def test_trace_turns_a_dark_ring_into_a_hollow_outline(tmp_path):
+    import shutil
+
+    import pytest
+
+    if shutil.which("node") is None:
+        pytest.skip("Node.js is not installed")
+    picture = tmp_path / "ring.png"
+    img = Image.new("RGBA", (120, 120), (255, 255, 255, 255))
+    from PIL import ImageDraw
+    ImageDraw.Draw(img).ellipse([20, 20, 100, 100], outline=(0, 0, 0, 255), width=6)
+    img.save(picture)
+    changes = tmp_path / "ring-changes.json"
+    result = run("trace", str(picture), "-o", str(changes))
+    assert result.returncode == 0, result.stderr
+    info = json.loads(result.stdout)
+    assert info["paths"] >= 1
+    doc = tmp_path / "canvas.json"
+    run("new", str(doc), "--width", str(info["canvas_width"]), "--height", str(info["canvas_height"]),
+        "--background", "#ffffff")
+    out = tmp_path / "canvas2.json"
+    assert run("apply", str(doc), "--changes", str(changes), "-o", str(out)).returncode == 0
+    rendered = tmp_path / "rendered.png"
+    assert run("render", str(out), "-o", str(rendered)).returncode == 0
+    with Image.open(rendered) as traced:
+        assert traced.getpixel((60, 60))[0] > 200  # the middle stays empty
+        assert traced.getpixel((20, 60))[0] < 100  # the ring is drawn
+
+
+def test_trace_refuses_a_bad_threshold(tmp_path):
+    picture = tmp_path / "p.png"
+    Image.new("RGBA", (10, 10), (255, 255, 255, 255)).save(picture)
+    result = run("trace", str(picture), "-o", str(tmp_path / "c.json"), "--threshold", "300")
+    assert result.returncode == 1
+    assert "threshold must be" in result.stderr
