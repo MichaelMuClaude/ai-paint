@@ -27,6 +27,7 @@ src/ai_paint/
   svgrender.py SVG allow-list check, drawing through the system's librsvg and cairo (ctypes),
                the part library loader, and element edits by id
   library/     built-in SVG parts; each file holds one part whose ids all start with lib-<file name>
+  export.py    compiles a whole document into one SVG (Inkscape layers, filters, masks, patterns)
   document.py  document schema, validation, rendering, apply, save
   view.py      grid overlay, crop and zoom (for looking only)
   cli.py       new, info, ops, validate, apply, render
@@ -50,6 +51,7 @@ python3 -m venv ~/.venvs/ai-paint-dev
 
 ## Known behaviour to keep in mind
 
+- Every op type must stay exportable: when you add an op, add it to `export.py` and to the comparison cases in `tests/test_export.py`.
 - The `svg` op must keep its allow-list in `svgrender.py`: no scripts, no event attributes, no `<image>` or `<foreignObject>`, no DOCTYPE, and every `href` or `url()` must point inside the same SVG. Add a refusal test for every new rule.
 - `apply` only changes ops by id: `update` merges fields, `remove` deletes. An op id cannot be changed.
 - `fill` tolerance is the total difference over red, green, blue and alpha, because that is what Pillow's flood fill uses. The README states it.

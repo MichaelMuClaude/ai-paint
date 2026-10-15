@@ -154,6 +154,27 @@ def _trace(args) -> int:
     return 0
 
 
+def _export(args) -> int:
+    from ai_paint.export import compile_document
+
+    source, output = Path(args.document), Path(args.output)
+    if _same_file(source, output):
+        return _fail("the output must be a different file; the input document is never changed")
+    if output.suffix.lower() != ".svg":
+        return _fail("the output must end in .svg")
+    if output.exists() and not args.force:
+        return _fail(f"{output} already exists; use --force to replace it")
+    try:
+        svg, report = compile_document(document.load(source), _folder(source))
+    except PaintError as exc:
+        return _fail(str(exc))
+    output.write_text(svg, encoding="utf-8")
+    note = ("layers with a flood fill are embedded as pictures" if report["layers_as_pictures"]
+            else "every layer is vector")
+    print(json.dumps({"input": source.name, "output": output.name, **report, "note": note}, indent=2))
+    return 0
+
+
 def _parts(args) -> int:
     from ai_paint.svgrender import library, render_svg
 
@@ -345,6 +366,12 @@ def main() -> None:
     trace.add_argument("--offset", help="Move the lines by x,y pixels, for example 120,80")
     trace.add_argument("--force", action="store_true", help="Replace the output file if it exists")
     trace.set_defaults(func=_trace)
+
+    export = sub.add_parser("export", help="Write the whole document as one SVG file (Inkscape layers)")
+    export.add_argument("document")
+    export.add_argument("-o", "--output", required=True, help="SVG file to write")
+    export.add_argument("--force", action="store_true", help="Replace the output file if it exists")
+    export.set_defaults(func=_export)
 
     parts = sub.add_parser("parts", help="List the built-in SVG parts (eyes, mouths, manga symbols)")
     parts.add_argument("--preview", help="Draw one part, for example lib-eye-anime")

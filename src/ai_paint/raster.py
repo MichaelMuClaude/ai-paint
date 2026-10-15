@@ -340,13 +340,12 @@ def text_size(text: str, size: int, font_path: str | None) -> tuple[int, int]:
     return right - left, bottom - top
 
 
-def draw_text(layer: Image.Image, text: str, xy: list, size: int, font_path: str | None,
-              colour: tuple, opacity: float, align: str = "left", valign: str = "top") -> None:
-    """Write text so that its ink box sits on `xy`.
+def text_layout(text: str, xy: list, size: int, font_path: str | None,
+                align: str = "left", valign: str = "top"):
+    """Where the text goes: returns (font, origin_x, origin_y, ink_box).
 
-    align: left, center or right, which side of the box `xy` is on.
-    valign: top, middle or bottom, which edge of the box `xy` is on.
-    Lines are separated by newlines and are aligned to each other by `align`.
+    The origin is where Pillow's multiline_text starts the first line (its left edge and ascender), chosen so
+    that the text's ink box sits on `xy` as `align` and `valign` say. Both drawing and SVG export use it.
     """
     font = _font(size, font_path)
     measure = ImageDraw.Draw(Image.new("L", (1, 1)))
@@ -356,7 +355,18 @@ def draw_text(layer: Image.Image, text: str, xy: list, size: int, font_path: str
     anchor_y = {"top": 0, "middle": height / 2, "bottom": height}[valign]
     origin_x = xy[0] - anchor_x - left
     origin_y = xy[1] - anchor_y - top
-    box = [origin_x + left, origin_y + top, origin_x + right, origin_y + bottom]
+    return font, origin_x, origin_y, (origin_x + left, origin_y + top, origin_x + right, origin_y + bottom)
+
+
+def draw_text(layer: Image.Image, text: str, xy: list, size: int, font_path: str | None,
+              colour: tuple, opacity: float, align: str = "left", valign: str = "top") -> None:
+    """Write text so that its ink box sits on `xy`.
+
+    align: left, center or right, which side of the box `xy` is on.
+    valign: top, middle or bottom, which edge of the box `xy` is on.
+    Lines are separated by newlines and are aligned to each other by `align`.
+    """
+    font, origin_x, origin_y, box = text_layout(text, xy, size, font_path, align, valign)
     region = _region([box[:2], box[2:]], 1, layer.size)
     if region is None:
         return

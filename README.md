@@ -102,6 +102,12 @@ Give SVG elements an `id`, then change them one at a time instead of rewriting t
 
 `ai-paint elements DOC OP_ID` lists the elements with ids in an svg op. Edits work on inline `svg` markup; for a `.svg` file, edit the file.
 
+### Exporting to SVG
+
+`ai-paint export DOC -o page.svg` writes the whole document as one SVG file. Each layer becomes an Inkscape layer, with its opacity, blur and outline kept as SVG attributes and filters, so the page can be edited further in Inkscape or any SVG editor. Shapes, paths, strokes, text, balloons, gradients, screentones, erasing, pasted pictures and svg ops all become SVG elements. A flood fill works on pixels, so a layer that uses one is embedded as a picture, and the command's report lists such layers.
+
+Exported files contain embedded pictures (`<image>`), so they cannot be fed back into an `svg` op, which refuses `<image>` for safety. Tests check that each kind of operation, exported and drawn by librsvg, matches ai-paint's own render closely.
+
 ## Tracing a sketch
 
 `ai-paint trace PICTURE.png -o lines.json` turns the picture's dark lines into smooth path ops. Pixels darker than `--threshold` (default 30) count as lines. The output is a changes file: `apply` it to a canvas of the size the command reports, and the lines appear on their own layer. `--scale` and `--offset` move and resize the traced lines, so a figure can go into a panel. `--thicken N` grows the lines by N pixels (0 to 5) before tracing; use 2 for manga-weight lines. Thickening the mask works better than a layer outline, which doubles thin lines. Tracing uses [ImageTracer](src/ai_paint/vendor/README.md), which is public domain, and needs Node.js.
@@ -114,6 +120,9 @@ Give SVG elements an `id`, then change them one at a time instead of rewriting t
 | `info FILE` | Show canvas, layers, op counts, and any problems, as JSON |
 | `ops` | List operations and their parameters |
 | `validate FILE` | Check a document without drawing |
+| `export FILE -o PAGE.svg` | Write the whole document as one SVG file with Inkscape layers |
+| `parts` | List the built-in SVG parts; `--preview NAME -o PICTURE.png` draws one |
+| `elements FILE OP_ID` | List the elements with ids inside an svg op |
 | `measure --text T --size N [--font F]` | Width and height in pixels of a line of text, so you can fit it |
 | `apply FILE --changes CHANGES.json -o NEW.json` | Add layers and ops and write a new document. The input is never changed. |
 | `render FILE -o PICTURE.png` | Draw the document. Output can be `.png`, `.jpg`, or `.webp`. Add `--grid STEP`, `--crop X,Y,W,H`, and `--zoom N` to look at it more closely (see below). |

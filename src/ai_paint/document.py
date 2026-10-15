@@ -142,31 +142,42 @@ def _raise_if_invalid(doc, base: Path | None = None) -> None:
         raise PaintError("; ".join(problems))
 
 
+def layer_content(layer: dict, layer_ops: list, size: tuple[int, int]) -> Image.Image:
+    """Draw one layer's normalised ops, then its blur and outline. Layer opacity is not applied here."""
+    content = Image.new("RGBA", size, (0, 0, 0, 0))
+    for name, values in layer_ops:
+        ops.draw(name, content, values, size)
+    if layer.get("blur", 0):
+        content = raster.blur_layer(content, layer["blur"])
+    if layer.get("outline") is not None:
+        outline = layer["outline"]
+        content = raster.add_outline(
+            content, parse_colour(outline.get("colour", "#000000")), outline.get("width", 2)
+        )
+    return content
+
+
+def ops_by_layer(doc, size: tuple[int, int], base: Path | None = None) -> dict[str, list]:
+    """Each layer id with its ops, normalised, in document order. Items are (raw, name, values)."""
+    grouped: dict[str, list] = {}
+    for raw in doc.get("ops", []):
+        name, values = ops.normalise(raw, size, base)
+        grouped.setdefault(raw["layer"], []).append((raw, name, values))
+    return grouped
+
+
 def render(doc, base: Path | None = None) -> Image.Image:
     """Draw every visible layer, bottom to top, and return an RGBA image."""
     _raise_if_invalid(doc, base)
     size = _canvas_size(doc["canvas"])
     background = doc["canvas"].get("background")
     result = Image.new("RGBA", size, (0, 0, 0, 0) if background is None else parse_colour(background))
-
-    by_layer: dict[str, list] = {}
-    for raw in doc.get("ops", []):
-        name, values = ops.normalise(raw, size, base)
-        by_layer.setdefault(raw["layer"], []).append((name, values))
-
+    grouped = ops_by_layer(doc, size, base)
     for layer in doc["layers"]:
         if not layer.get("visible", True):
             continue
-        content = Image.new("RGBA", size, (0, 0, 0, 0))
-        for name, values in by_layer.get(layer["id"], []):
-            ops.draw(name, content, values, size)
-        if layer.get("blur", 0):
-            content = raster.blur_layer(content, layer["blur"])
-        if layer.get("outline") is not None:
-            outline = layer["outline"]
-            content = raster.add_outline(
-                content, parse_colour(outline.get("colour", "#000000")), outline.get("width", 2)
-            )
+        layer_ops = [(name, values) for _, name, values in grouped.get(layer["id"], [])]
+        content = layer_content(layer, layer_ops, size)
         opacity = layer.get("opacity", 1.0)
         if opacity < 1:
             alpha = content.getchannel("A").point(lambda v: round(v * opacity))

@@ -19,6 +19,8 @@ Run `ai-paint list drawing-2.json --text` to see every op's id before you change
 
 Use `ai-paint info FILE` to see the layers, the op counts, and any problems in one place.
 
+To hand a picture over for editing in Inkscape, run `ai-paint export drawing.json -o drawing.svg`. Layers stay separate.
+
 ## Rules
 
 - Never write to the input document or picture. Always use a new output name.

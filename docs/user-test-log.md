@@ -125,3 +125,9 @@ Drawing with SVG worked better than ai-paint's own ops, so SVG becomes the core.
 | 26 | Finding what to change | `ai-paint elements DOC OP_ID` |
 
 Test: a four-mood expression sheet took 69 lines of SVG, and it is the clearest drawing so far.
+
+## Round 11: export to SVG
+
+`ai-paint export` compiles a document into one SVG. Three earlier documents exported with no layer turned into a picture, and librsvg's render of each export matched ai-paint's own: mean difference 0.29 (captain), 1.57 (pirate king) and 0.96 (manga page) on a 0 to 255 scale. The visible difference is a slightly softer layer outline in the SVG.
+
+Decision: keep ai-paint's own renderer as the main render path for now, because 181 pixel-level tests rest on it. Switch to rendering through the exported SVG only after the export has been used on more real pages.

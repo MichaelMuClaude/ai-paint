@@ -27,7 +27,7 @@ Goal: an AI agent can draw a manga page the way a manga artist does: clean line 
 Drawing with SVG code gave far better results than ai-paint's own shape ops, because SVG already has groups, transforms, clipping, reuse and filters, and an agent writes it fluently. ai-paint is moving to SVG as its core drawing language, with its own work focused on the workflow around it.
 
 - Phase 1 (done): the `svg` op, a part library (`lib-*`), and element edits by id (`svg_set`, `svg_remove`, `svg_replace`, `ai-paint elements`).
-- Phase 2: compile the whole document to one SVG internally, render it in one pass, and export it with `ai-paint export DOC -o page.svg` so pages open in Inkscape. The older shape ops become SVG elements; flood fill stays a pixel step.
+- Phase 2 (export done): `ai-paint export DOC -o page.svg` compiles the whole document into one SVG with Inkscape layers. Every op type is compiled to SVG elements; flood-fill layers are embedded as pictures. Tests compare each op type's export with the native render. Still open: making the SVG the main render path, once the export has proven itself on real pages.
 - Phase 3: more parts (hair styles, hands, clothes, speech balloon shapes, speed lines and other manga effects), and poses built from a skeleton of reusable limbs.
 
 ## What other open-source projects teach us

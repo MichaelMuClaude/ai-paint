@@ -315,8 +315,8 @@ _register(
 )
 
 
-def _draw_balloon(layer, v, size):
-    """A speech balloon: an ellipse around centred text, with an optional tail pointing at `tail`."""
+def balloon_points(v) -> list:
+    """The balloon's outline as points: an ellipse around the text, with an optional tail."""
     text_w, text_h = raster.text_size(v["text"], v["size"], v["font"])
     pad = v["size"] * 0.6
     cx, cy = v["centre"]
@@ -335,12 +335,18 @@ def _draw_balloon(layer, v, size):
         points.append([cx + a * math.cos(theta), cy + b * math.sin(theta)])
     if tail_angle is not None:
         points.append(list(v["tail"]))  # the tail point
+    return points
+
+
+def _draw_balloon(layer, v, size):
+    """A speech balloon: an ellipse around centred text, with an optional tail pointing at `tail`."""
+    points = balloon_points(v)
     fill = v["fill"] if v["fill"] is not None else (255, 255, 255, 255)
     raster.draw_shape(layer, "polygon", points, fill, v["opacity"], filled=True)
     outline = v["outline"] if v["outline"] is not None else (0, 0, 0, 255)
     raster.draw_shape(layer, "polygon", points, outline, v["opacity"], filled=False, width=v["width"])
     text_colour = v["colour"] if v["colour"] is not None else (0, 0, 0, 255)
-    raster.draw_text(layer, v["text"], [cx, cy], v["size"], v["font"], text_colour, v["opacity"],
+    raster.draw_text(layer, v["text"], v["centre"], v["size"], v["font"], text_colour, v["opacity"],
                      align="center", valign="middle")
 
 
