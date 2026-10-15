@@ -156,3 +156,24 @@ def test_arc_flags_must_be_zero_or_one():
 def test_arc_needs_seven_numbers():
     with pytest.raises(PaintError, match="needs 7 numbers"):
         svgpath.parse("M 0 0 A 10 10 0 0 1 20")
+
+
+def test_layer_outline_surrounds_shapes_and_keeps_their_fill():
+    doc = document.new_document(60, 60, "#ffffff")
+    doc = document.apply_changes(doc, {
+        "update_layers": {"l1": {"outline": {"colour": "#000000", "width": 3}}},
+        "ops": [{"op": "rect", "layer": "l1", "box": [20, 20, 20, 20], "fill": "#ff0000"}],
+    })
+    img = document.render(doc)
+    assert img.getpixel((30, 30)) == (255, 0, 0, 255)  # the fill keeps its colour
+    edge = img.getpixel((18, 30))  # just outside the rectangle
+    assert edge[0] < 60 and edge[1] < 60 and edge[2] < 60  # the outline is dark
+    assert img.getpixel((5, 5)) == WHITE  # far away, nothing is drawn
+
+
+def test_layer_outline_is_validated():
+    doc = document.new_document(10, 10)
+    doc["layers"][0]["outline"] = {"colour": "nope", "width": 2}
+    assert any("outline colour is not recognised" in p for p in document.validate_document(doc))
+    doc["layers"][0]["outline"] = {"colour": "#000000", "width": 40}
+    assert any("outline width must be" in p for p in document.validate_document(doc))

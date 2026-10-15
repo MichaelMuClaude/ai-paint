@@ -56,6 +56,8 @@ Fills and outlines (`fill`, `outline`) take a colour, or a gradient:
 
 Stop positions go from 0 to 1. A layer can be blurred for glows and soft shadows with `"blur": 14` (pixels), set in the layer's entry in `layers`.
 
+A layer can also get a cartoon outline with `"outline": {"colour": "#2b1a10", "width": 2}`. The outline goes around every shape on that layer, under the shapes. Put shapes that should share an outline on one layer.
+
 Outline `width` can be a decimal, for example `2.5`, down to `0.5`.
 
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). Relative picture and font paths are read from the document's own folder, so a document and its pictures can be moved together. The `fill` op sets pixels to the colour and does not blend.

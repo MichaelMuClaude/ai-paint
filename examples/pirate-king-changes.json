@@ -16,20 +16,36 @@
    "opacity": 0.35
   },
   {
-   "id": "back"
+   "id": "back",
+   "outline": {
+    "colour": "#2b1a10",
+    "width": 2
+   }
   },
   {
-   "id": "body"
+   "id": "body",
+   "outline": {
+    "colour": "#2b1a10",
+    "width": 2
+   }
   },
   {
-   "id": "face"
+   "id": "face",
+   "outline": {
+    "colour": "#2b1a10",
+    "width": 2
+   }
   },
   {
    "id": "blush",
    "blur": 5
   },
   {
-   "id": "hat"
+   "id": "hat",
+   "outline": {
+    "colour": "#2b1a10",
+    "width": 2
+   }
   },
   {
    "id": "features"

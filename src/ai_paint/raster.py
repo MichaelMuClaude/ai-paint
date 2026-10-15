@@ -136,6 +136,22 @@ def paint(layer: Image.Image, mask: Image.Image, region: tuple, colour, opacity:
     layer.paste(Image.alpha_composite(existing, overlay), target[:2])
 
 
+def add_outline(content: Image.Image, colour: tuple, width: float) -> Image.Image:
+    """Return the layer with an outline drawn around its shapes, under the shapes.
+
+    The outline is the layer's alpha grown by `width` pixels, minus the shapes themselves. It is made by
+    growing the alpha one pixel at a time, so it follows the shapes closely.
+    """
+    alpha = content.getchannel("A")
+    grown = alpha
+    for _ in range(max(1, round(width))):
+        grown = grown.filter(ImageFilter.MaxFilter(3))
+    ring = ImageChops.subtract(grown, alpha).filter(ImageFilter.GaussianBlur(0.6))
+    outline = Image.new("RGBA", content.size, colour[:3] + (0,))
+    outline.putalpha(ImageChops.multiply(ring, Image.new("L", content.size, colour[3])))
+    return Image.alpha_composite(outline, content)
+
+
 def blur_layer(image: Image.Image, radius: float) -> Image.Image:
     """Blur a layer's pixels, keeping their colour. Colour is blurred before transparency is applied,
     so edges do not pick up a dark fringe."""

@@ -29,6 +29,7 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 - For organic shapes (faces, limbs, clothes), use `path` with curves or arcs (`A`). Plain rectangles and ellipses look blocky.
 - Faces need detail to read as faces: almond eyes with an iris and a highlight, tapered brows, a nose, and a grin with teeth. Blush on a blurred layer softens them. Check the face at `--crop ... --zoom 4`.
 - Keep a hat's brim above the brows, or draw the features on a layer above the hat.
+- Cartoon look: put the figure's silhouette parts on layers with `"outline"`. Flat colour with dark outlines reads as a cartoon; gradients on the figure do not.
 - Use gradients for sky, sun, and shading. A `radial` gradient with a layer `blur` makes a glow.
 - For a shadow or glow, put the shape on its own layer with `"blur"` and a lower `"opacity"`.
 - To fill inside a shape, draw its outline first on the same layer, then use `fill` from a point inside it.

@@ -14,7 +14,7 @@ SCHEMA = "ai-paint/1"
 MAX_PIXELS = 25_000_000
 BLEND_MODES = ("normal",)
 DOCUMENT_KEYS = {"schema", "canvas", "layers", "ops"}
-LAYER_KEYS = {"id", "name", "opacity", "visible", "blend", "blur"}
+LAYER_KEYS = {"id", "name", "opacity", "visible", "blend", "blur", "outline"}
 CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers", "canvas"}
 
 
@@ -79,6 +79,18 @@ def _layer_problems(layers) -> tuple[list[str], set]:
         blur = layer.get("blur", 0)
         if isinstance(blur, bool) or not isinstance(blur, (int, float)) or not 0 <= blur <= 100:
             problems.append(prefix + "blur must be a number from 0 to 100 (pixels)")
+        outline = layer.get("outline")
+        if outline is not None:
+            if not isinstance(outline, dict) or set(outline) - {"colour", "width"}:
+                problems.append(prefix + "outline must be an object with colour and width")
+            else:
+                try:
+                    parse_colour(outline.get("colour", "#000000"))
+                except PaintError as exc:
+                    problems.append(prefix + f"outline {exc}")
+                width = outline.get("width", 2)
+                if isinstance(width, bool) or not isinstance(width, (int, float)) or not 0.5 <= width <= 20:
+                    problems.append(prefix + "outline width must be a number from 0.5 to 20 (pixels)")
     return problems, ids
 
 
@@ -149,6 +161,11 @@ def render(doc, base: Path | None = None) -> Image.Image:
             ops.draw(name, content, values, size)
         if layer.get("blur", 0):
             content = raster.blur_layer(content, layer["blur"])
+        if layer.get("outline") is not None:
+            outline = layer["outline"]
+            content = raster.add_outline(
+                content, parse_colour(outline.get("colour", "#000000")), outline.get("width", 2)
+            )
         opacity = layer.get("opacity", 1.0)
         if opacity < 1:
             alpha = content.getchannel("A").point(lambda v: round(v * opacity))

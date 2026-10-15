@@ -85,3 +85,18 @@ The new face has almond eyes with irises, highlights, and eyelids; tapered brows
 ## Round 7: reference check
 
 I checked the reference online (Wikipedia's article on Luffy, plus a fan article on early sketches). The article describes the classic outfit as a red vest and denim shorts, with a yellow sash in later arcs. The captain now has a yellow sash with a hanging end, and denim shorts with a blue gradient. The scar under the left eye and the straw hat with a red band were already there. Still missing from the reference: the chest scar and the messy hair shape.
+
+## Round 8: why it still looks ugly
+
+Reasons, from looking at the renders:
+- Cartoons are drawn with a dark outline around every shape. My figure had almost none, so it looked like clip art.
+- Shapes were typed as coordinates with no construction or sketch, so proportions were guessed.
+- Gradients on a figure read as stock illustration rather than cartoon.
+
+What other open-source projects do:
+- Synfig (GPL) builds cartoons from rigged parts: each limb is a layer attached to bones, so the drawing is made once and moved. Its [skeleton tutorial](https://synfig.readthedocs.io/en/latest/tutorials/bones_morphing.html) describes the process.
+- Potrace (GPL) and ImageTracer (Unlicense, in jspaint's lib folder) turn a bitmap sketch into smooth curves, so an artist draws a sketch and the tool makes the outlines. Potrace's licence is described in its [README](https://potrace.sourceforge.net/README).
+
+What I added: a layer-level `outline`, which draws a dark line around every shape on the layer. The captain now uses outlines on the hair, body, face and hat. It reads as a character now, but it is still not a polished cartoon.
+
+Next options, not yet built: a `trace` command that turns a user-supplied sketch into path ops (like Potrace), and rigging for moving parts.
