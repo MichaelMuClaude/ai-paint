@@ -172,10 +172,11 @@ def blur_layer(image: Image.Image, radius: float) -> Image.Image:
 
 
 def draw_stroke(layer: Image.Image, points: list, radius: float, hardness: float, spacing: float,
-                colour: tuple, opacity: float, taper: float = 0.0) -> None:
+                colour: tuple, opacity: float, taper: float = 0.0, end_radius: float | None = None) -> None:
     """Paint a path of round dabs. `radius` and `spacing` are in picture pixels.
 
     `taper` is the fraction of the path's length at each end over which the line narrows to a point.
+    `end_radius`, if given, makes the radius change evenly from `radius` at the start to it at the end.
     """
     region = _region(points, radius + 2, layer.size)
     if region is None:
@@ -190,6 +191,8 @@ def draw_stroke(layer: Image.Image, points: list, radius: float, hardness: float
     sampler = _Sampler(region)
     for x, y, along in positions:
         dab_radius = radius
+        if end_radius is not None and total > 0:
+            dab_radius = radius + (end_radius - radius) * along / total
         if taper > 0 and total > 0:
             distance_to_end = min(along, total - along)
             dab_radius = radius * max(MIN_TAPER, min(1.0, distance_to_end / (taper * total)))

@@ -205,3 +205,35 @@ def test_evenodd_leaves_a_hole_empty():
     assert union.getpixel((50, 50)) == BLACK  # union fills the hole too
     assert evenodd.getpixel((50, 50)) == WHITE  # evenodd leaves it empty
     assert evenodd.getpixel((20, 20)) == BLACK  # the ring itself is still filled
+
+
+def test_spline_passes_through_its_key_points():
+    from ai_paint import svgpath as sp
+    curve = sp.spline([[10, 10], [50, 80], [90, 10]])
+    assert curve[0] == pytest.approx((10, 10))
+    assert min(abs(x - 50) + abs(y - 80) for x, y in curve) < 1.5  # passes near the middle key point
+    assert curve[-1] == pytest.approx((90, 10), abs=0.01)
+
+
+def test_spline_fill_draws_a_smooth_shape():
+    img = _render({"op": "spline", "layer": "l1", "points": [[10, 80], [50, 10], [90, 80]], "closed": True,
+                   "fill": "#ff0000"})
+    assert img.getpixel((50, 60)) == (255, 0, 0, 255)
+    assert img.getpixel((10, 10)) == WHITE
+
+
+def test_spline_needs_two_points_and_a_fill_or_outline():
+    with pytest.raises(PaintError, match="needs 2 to"):
+        ops.normalise({"op": "spline", "layer": "l1", "points": [[1, 1]], "fill": "red"}, (100, 100))
+    with pytest.raises(PaintError, match="give a fill colour"):
+        ops.normalise({"op": "spline", "layer": "l1", "points": [[1, 1], [5, 5]]}, (100, 100))
+
+
+def test_stroke_can_thin_from_one_size_to_another():
+    img = _render({"op": "stroke", "layer": "l1", "points": [[10, 50], [90, 50]], "size": 20, "size_end": 4,
+                   "colour": "#000000"})
+
+    def ink(x):
+        return sum(1 for y in range(100) if img.getpixel((x, y))[0] < 128)
+
+    assert ink(15) > ink(85) + 6  # thick near the start, thin near the end

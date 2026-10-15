@@ -27,6 +27,8 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 - Operations are drawn in order, so a later one lands on top of an earlier one in the same layer.
 - To centre text on a point, use `"align": "center", "valign": "middle"`. Do not estimate the text width.
 - For organic shapes (faces, limbs, clothes), use `path` with curves or arcs (`A`). Plain rectangles and ellipses look blocky.
+- For a limb, use one `stroke` with `size` and `size_end`, so it thins from shoulder to wrist. It is easier than a closed path.
+- For a smooth outline, give a `spline` a few key points instead of writing control points by hand.
 - Faces need detail to read as faces: almond eyes with an iris and a highlight, tapered brows, a nose, and a grin with teeth. Blush on a blurred layer softens them. Check the face at `--crop ... --zoom 4`.
 - Keep a hat's brim above the brows, or draw the features on a layer above the hat.
 - Cartoon look: put the figure's silhouette parts on layers with `"outline"`. Flat colour with dark outlines reads as a cartoon; gradients on the figure do not.

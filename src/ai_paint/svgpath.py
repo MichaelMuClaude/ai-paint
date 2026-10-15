@@ -240,3 +240,28 @@ def parse(data: str) -> list[tuple[list, bool]]:
     if not subpaths:
         raise PaintError("path data has no line or curve to draw; it needs at least two points")
     return subpaths
+
+
+def spline(points: list, closed: bool = False) -> list:
+    """Smooth curve through the points (Catmull-Rom), flattened to straight pieces.
+
+    The curve passes through every point. With `closed`, it loops back to the first point.
+    """
+    count = len(points)
+    if count < 2:
+        raise PaintError("a smooth curve needs at least two points")
+
+    def at(index):
+        if closed:
+            return points[index % count]
+        return points[max(0, min(count - 1, index))]
+
+    out = [(float(points[0][0]), float(points[0][1]))]
+    segments = count if closed else count - 1
+    for i in range(segments):
+        p0, p1, p2, p3 = at(i - 1), at(i), at(i + 1), at(i + 2)
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        out.extend(_cubic(p1, c1, c2, p2))
+    return out
+

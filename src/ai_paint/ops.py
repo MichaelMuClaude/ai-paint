@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from PIL import Image
 
-from ai_paint import raster
+from ai_paint import raster, svgpath
 from ai_paint.errors import PaintError
 from ai_paint.params import ID_PATTERN, MAX_SIZE, Param, coerce
 
@@ -50,8 +50,9 @@ def _need_fill_or_outline(values):
 
 def _draw_stroke(layer, v, size):
     style = raster.BRUSHES[v["brush"]]
+    end = v["size_end"] / 2 if v["size_end"] is not None else None
     raster.draw_stroke(layer, v["points"], v["size"] / 2, style["hardness"], style["spacing"],
-                       v["colour"], v["opacity"], taper=v["taper"])
+                       v["colour"], v["opacity"], taper=v["taper"], end_radius=end)
 
 
 _register(
@@ -66,6 +67,9 @@ _register(
               default="round", choices=tuple(raster.BRUSHES)),
         Param("taper", "float", "How much each end narrows to a point, as a fraction of the length, 0 to 0.5. "
               "0 keeps the width even.", required=False, default=0.0, minimum=0, maximum=0.5),
+        Param("size_end", "float", "Diameter at the end of the stroke; the width changes evenly from size. "
+              "Use it for limbs that thin out, for example an arm from 30 to 12.", required=False,
+              minimum=1, maximum=MAX_SIZE_PX),
     ],
     _draw_stroke,
 )
@@ -223,6 +227,33 @@ _register(
         OPACITY,
     ],
     _draw_place,
+)
+
+
+def _draw_spline(layer, v, size):
+    points = svgpath.spline(v["points"], closed=v["closed"])
+    subpaths = [(points, v["closed"])]
+    if v["fill"] is not None:
+        raster.draw_path(layer, subpaths, v["fill"], v["opacity"], filled=True)
+    if v["outline"] is not None:
+        raster.draw_path(layer, subpaths, v["outline"], v["opacity"], filled=False, width=v["width"])
+
+
+_register(
+    "spline",
+    "Smooth curve through a list of points, so you only give the key points. "
+    "Fill and outline work on a closed curve; set closed to true to loop back to the start.",
+    [
+        Param("points", "points", "Key points [[x, y], ...] the curve passes through", min_items=2,
+              max_items=MAX_POINTS),
+        Param("closed", "bool", "Loop back to the first point", required=False, default=False),
+        FILL,
+        OUTLINE,
+        WIDTH,
+        OPACITY,
+    ],
+    _draw_spline,
+    _need_fill_or_outline,
 )
 
 
