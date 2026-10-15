@@ -3,7 +3,9 @@ from PIL import Image
 
 from ai_paint import document, ops
 from ai_paint.errors import PaintError
-from ai_paint.svgrender import check_svg, render_svg
+from ai_paint.svgrender import available, check_svg, render_svg
+
+needs_rsvg = pytest.mark.skipif(not available(), reason="librsvg is not installed")
 
 WHITE = (255, 255, 255, 255)
 RED = (255, 0, 0, 255)
@@ -15,6 +17,7 @@ def _render(*op_list, width=100, height=100, background="#ffffff", base=None):
     return document.render(doc, base)
 
 
+@needs_rsvg
 def test_render_svg_draws_shapes_with_correct_colour_and_transparency():
     img = render_svg('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">'
                      '<rect x="0" y="0" width="10" height="20" fill="#ff0000"/></svg>', 20, 20)
@@ -22,6 +25,7 @@ def test_render_svg_draws_shapes_with_correct_colour_and_transparency():
     assert img.getpixel((15, 10))[3] == 0
 
 
+@needs_rsvg
 def test_svg_fragment_uses_box_pixels_and_lands_in_the_box():
     img = _render({"op": "svg", "layer": "l1", "box": [50, 50, 40, 40],
                    "svg": '<circle cx="20" cy="20" r="15" fill="#ff0000"/>'})
@@ -29,6 +33,7 @@ def test_svg_fragment_uses_box_pixels_and_lands_in_the_box():
     assert img.getpixel((20, 20)) == WHITE  # outside the box nothing is drawn
 
 
+@needs_rsvg
 def test_svg_transforms_clip_paths_and_use_work():
     markup = (
         '<defs><clipPath id="c"><rect x="0" y="0" width="50" height="100"/></clipPath>'
@@ -42,11 +47,13 @@ def test_svg_transforms_clip_paths_and_use_work():
     assert img.getpixel((75, 80)) == (0, 0, 255, 255)  # the reused bar, moved down 30
 
 
+@needs_rsvg
 def test_svg_whole_canvas_when_no_box():
     img = _render({"op": "svg", "layer": "l1", "svg": '<rect width="100" height="100" fill="#ff0000"/>'})
     assert img.getpixel((99, 99)) == RED
 
 
+@needs_rsvg
 def test_svg_file_is_read_from_the_document_folder(tmp_path):
     (tmp_path / "dot.svg").write_text(
         '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#ff0000"/></svg>')
@@ -81,6 +88,7 @@ def test_svg_needs_exactly_one_source(tmp_path):
         ops.normalise({"op": "svg", "layer": "l1", "svg": "<g/>", "file": "a.svg"}, (100, 100), tmp_path)
 
 
+@needs_rsvg
 def test_svg_opacity_and_layers_still_apply():
     img = _render({"op": "svg", "layer": "l1", "opacity": 0.5,
                    "svg": '<rect width="100" height="100" fill="#000000"/>'})

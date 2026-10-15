@@ -124,6 +124,15 @@ def _libraries():
     return _LIBRARIES
 
 
+def available() -> bool:
+    """True when librsvg and cairo can be loaded, so SVG can be drawn on this machine."""
+    try:
+        _libraries()
+    except PaintError:
+        return False
+    return True
+
+
 def _raise_gerror(error, what: str) -> None:
     glib = _libraries()[3]
     message = error.contents.message.decode("utf-8", "replace") if error and error.contents.message else "unknown"
