@@ -1,0 +1,13 @@
+{"layers":[{"id":"shapes"},{"id":"arrows"},{"id":"labels"}],
+ "ops":[
+  {"id":"draft","op":"rect","layer":"shapes","box":[30,70,150,80],"fill":"#ffffff","outline":"#1d3557","width":2},
+  {"id":"review","op":"rect","layer":"shapes","box":[225,70,150,80],"fill":"#ffffff","outline":"#1d3557","width":2},
+  {"id":"publish","op":"rect","layer":"shapes","box":[420,70,150,80],"fill":"#e9f5db","outline":"#2d6a4f","width":2},
+  {"op":"line","layer":"arrows","points":[[180,110],[225,110]],"colour":"#1d3557","width":2},
+  {"op":"polygon","layer":"arrows","points":[[225,104],[235,110],[225,116]],"fill":"#1d3557"},
+  {"op":"line","layer":"arrows","points":[[375,110],[420,110]],"colour":"#1d3557","width":2},
+  {"op":"polygon","layer":"arrows","points":[[420,104],[430,110],[420,116]],"fill":"#1d3557"},
+  {"id":"t1","op":"text","layer":"labels","text":"Draft","point":[105,110],"size":20,"align":"center","valign":"middle","colour":"#1d3557"},
+  {"id":"t2","op":"text","layer":"labels","text":"Review","point":[300,110],"size":20,"align":"center","valign":"middle","colour":"#1d3557"},
+  {"id":"t3","op":"text","layer":"labels","text":"Publish","point":[495,110],"size":20,"align":"center","valign":"middle","colour":"#2d6a4f"}
+ ]}

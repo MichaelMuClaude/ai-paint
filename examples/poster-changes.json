@@ -1,0 +1,8 @@
+{"layers":[{"id":"art"},{"id":"words"}],
+ "ops":[
+  {"id":"band","op":"rect","layer":"l1","box":[0,200,600,100],"fill":"#f4a261"},
+  {"id":"logo","op":"place","layer":"art","image":"logo.png","point":[40,60],"width":160},
+  {"id":"cut","op":"erase","layer":"l1","box":[200,40,380,30],"shape":"ellipse","opacity":0.8},
+  {"id":"title","op":"text","layer":"words","text":"Open Day\nSaturday 9 am","point":[300,130],"size":44,"align":"center","valign":"middle","colour":"#ffffff"},
+  {"id":"note","op":"text","layer":"words","text":"Bring a friend","point":[300,255],"size":22,"align":"center","valign":"middle","colour":"#1d3557"}
+ ]}

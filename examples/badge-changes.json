@@ -1,0 +1,7 @@
+{"layers":[{"id":"shadow","opacity":0.3},{"id":"badge"}],
+ "ops":[
+  {"id":"s","op":"ellipse","layer":"shadow","box":[30,36,120,120],"fill":"#000000"},
+  {"id":"disc","op":"ellipse","layer":"badge","box":[24,24,120,120],"fill":"#e76f51","outline":"#264653","width":4},
+  {"id":"ring","op":"ellipse","layer":"badge","box":[44,44,80,80],"outline":"#ffffff","width":3},
+  {"id":"txt","op":"text","layer":"badge","text":"AP","point":[84,84],"size":34,"align":"center","valign":"middle","colour":"#ffffff","font":"/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"}
+ ]}
