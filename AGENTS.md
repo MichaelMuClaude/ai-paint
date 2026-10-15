@@ -23,8 +23,9 @@ src/ai_paint/
   ops.py       operations, their parameters and drawing code
   raster.py    brush dabs, shape masks, compositing, flood fill
   document.py  document schema, validation, rendering, apply, save
+  view.py      grid overlay, crop and zoom (for looking only)
   cli.py       new, info, ops, validate, apply, render
-tests/         pytest suite; test_ops, test_document, test_cli
+tests/         pytest suite; test_ops, test_document, test_cli, test_view
 ```
 
 ## Setup and checks

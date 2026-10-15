@@ -12,7 +12,7 @@ description: Draw or edit a picture from a JSON document of explicit operations 
 3. Write the changes as JSON, for example `{"ops": [{"op": "rect", "layer": "l1", "box": [20, 20, 200, 120], "fill": "#ffcc00"}]}`.
 4. Apply the changes to a new file: `ai-paint apply drawing.json --changes changes.json -o drawing-2.json`. `apply` refuses any change that would make the document invalid, and says why.
 5. Check any document at any time: `ai-paint validate drawing-2.json`.
-6. Render it: `ai-paint render drawing-2.json -o drawing-2.png`, then look at the PNG with the Read tool and compare it with what the user asked for.
+6. Render it: `ai-paint render drawing-2.json -o drawing-2.png`, then look at the PNG with the Read tool and compare it with what the user asked for. To place things accurately, render with a grid first: `ai-paint render drawing-2.json -o grid.png --grid 20`. Zoom into a detail with `--crop X,Y,W,H --zoom 3`. Grids and crops are for looking only.
 7. If something is wrong, write a new changes file and apply it to a new file name. Do not overwrite earlier results.
 
 Use `ai-paint info FILE` to see the layers, the op counts, and any problems in one place.
@@ -25,6 +25,7 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 - To fill inside a shape, draw its outline first on the same layer, then use `fill` from a point inside it.
 - Colours are names such as `red`, or `#rrggbb` or `#rrggbbaa` for transparency.
 - Layers are stacked in list order, bottom first. A layer with `"visible": false` is not drawn.
+- Put the sky or background first, then things that sit behind others on lower layers. Check overlaps in the grid render.
 
 ## Limits
 

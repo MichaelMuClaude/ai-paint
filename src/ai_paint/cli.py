@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ai_paint import __version__, document, ops
 from ai_paint.errors import PaintError
+from ai_paint.view import crop_and_zoom, draw_grid, parse_box
 
 
 def _fail(message: str) -> int:
@@ -124,13 +125,28 @@ def _render(args) -> int:
     source, output = Path(args.document), Path(args.output)
     if _same_file(source, output):
         return _fail("the output must be a different file; the input document is never changed")
+    view = {}
     try:
         doc = document.load(source)
         image = document.render(doc)
+        box = parse_box(args.crop) if args.crop else None
+        if box is not None or args.zoom != 1:
+            image = crop_and_zoom(image, box, args.zoom)
+            if box is not None:
+                view["crop"] = list(box)
+            view["zoom"] = args.zoom
+        if args.grid:
+            origin = (box[0], box[1]) if box is not None else (0, 0)
+            image = draw_grid(image, args.grid, origin=origin, scale=args.zoom)
+            view["grid"] = args.grid
         document.save_image(image, output, force=args.force)
     except PaintError as exc:
         return _fail(str(exc))
-    print(json.dumps({"input": source.name, "output": output.name, "width": image.width, "height": image.height}, indent=2))
+    result = {"input": source.name, "output": output.name, "width": image.width, "height": image.height}
+    if view:
+        result["view"] = view
+        result["note"] = "grid and crop are for looking only; the document itself is unchanged"
+    print(json.dumps(result, indent=2))
     return 0
 
 
@@ -175,6 +191,12 @@ def main() -> None:
     render.add_argument("document")
     render.add_argument("-o", "--output", required=True, help="Output picture (.png, .jpg, .webp)")
     render.add_argument("--force", action="store_true", help="Replace the output file if it exists")
+    render.add_argument("--grid", type=int, metavar="STEP",
+                        help="Draw a labelled coordinate grid every STEP pixels (for looking only)")
+    render.add_argument("--crop", metavar="X,Y,W,H",
+                        help="Only write this part of the picture (for looking only)")
+    render.add_argument("--zoom", type=int, default=1,
+                        help="Enlarge the output by this whole number, 1 to 8, with hard pixels")
     render.set_defaults(func=_render)
 
     args = parser.parse_args()

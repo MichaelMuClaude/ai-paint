@@ -56,9 +56,20 @@ Shapes have hard edges in this version. Anti-aliasing is not in yet.
 | `ops` | List operations and their parameters |
 | `validate FILE` | Check a document without drawing |
 | `apply FILE --changes CHANGES.json -o NEW.json` | Add layers and ops and write a new document. The input is never changed. |
-| `render FILE -o PICTURE.png` | Draw the document. Output can be `.png`, `.jpg`, or `.webp`. |
+| `render FILE -o PICTURE.png` | Draw the document. Output can be `.png`, `.jpg`, or `.webp`. Add `--grid STEP`, `--crop X,Y,W,H`, and `--zoom N` to look at it more closely (see below). |
 
 `apply` takes a JSON object with optional `layers` and `ops` lists. Items without an `id` get one. The result is validated before anything is written.
+
+### Looking at a picture
+
+To place things accurately, render with a grid. The grid has a line every `STEP` pixels, a darker line every fifth, and labels with the picture's own coordinates:
+
+```bash
+ai-paint render drawing.json -o grid.png --grid 20
+ai-paint render drawing.json -o detail.png --grid 10 --crop 280,40,120,120 --zoom 3
+```
+
+`--crop` writes only part of the picture, and `--zoom` (1 to 8) enlarges it with hard pixels. Grid and crop are for looking only, and the document is not changed. The JSON printed by `render` records them in a `view` block, so a view is never mistaken for the real output.
 
 Use `--force` to replace an existing output file. The input document or picture is never overwritten.
 
