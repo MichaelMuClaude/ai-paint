@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from ai_paint import ops
+from ai_paint import ops, raster
 from ai_paint.errors import PaintError
 from ai_paint.params import ID_PATTERN, MAX_SIZE, parse_colour
 
@@ -14,7 +14,7 @@ SCHEMA = "ai-paint/1"
 MAX_PIXELS = 25_000_000
 BLEND_MODES = ("normal",)
 DOCUMENT_KEYS = {"schema", "canvas", "layers", "ops"}
-LAYER_KEYS = {"id", "name", "opacity", "visible", "blend"}
+LAYER_KEYS = {"id", "name", "opacity", "visible", "blend", "blur"}
 CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers", "canvas"}
 
 
@@ -76,6 +76,9 @@ def _layer_problems(layers) -> tuple[list[str], set]:
             problems.append(prefix + f"blend must be one of: {', '.join(BLEND_MODES)}")
         if "name" in layer and not isinstance(layer["name"], str):
             problems.append(prefix + "name must be text")
+        blur = layer.get("blur", 0)
+        if isinstance(blur, bool) or not isinstance(blur, (int, float)) or not 0 <= blur <= 100:
+            problems.append(prefix + "blur must be a number from 0 to 100 (pixels)")
     return problems, ids
 
 
@@ -144,6 +147,8 @@ def render(doc, base: Path | None = None) -> Image.Image:
         content = Image.new("RGBA", size, (0, 0, 0, 0))
         for name, values in by_layer.get(layer["id"], []):
             ops.draw(name, content, values, size)
+        if layer.get("blur", 0):
+            content = raster.blur_layer(content, layer["blur"])
         opacity = layer.get("opacity", 1.0)
         if opacity < 1:
             alpha = content.getchannel("A").point(lambda v: round(v * opacity))

@@ -10,9 +10,11 @@ to hold them, and then averaged back down. Edges therefore get partial coverage 
 import math
 from functools import lru_cache
 
-from PIL import Image, ImageChops, ImageDraw, ImageFont
+import numpy as np
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 from ai_paint.errors import PaintError
+from ai_paint.gradient import Gradient
 
 AA = 3  # samples per pixel along each axis, so each pixel is averaged from AA x AA samples
 MAX_DABS = 200_000
@@ -115,21 +117,37 @@ class _Sampler:
         return self.big.resize((self.width, self.height), Image.BOX)
 
 
-def paint(layer: Image.Image, mask: Image.Image, region: tuple, colour: tuple, opacity: float) -> None:
-    """Blend `colour` onto `layer` through the mask, scaled by the colour's alpha and `opacity`."""
-    alpha = colour[3] / 255 * opacity
-    if alpha <= 0:
-        return
-    shade = mask.point(lambda v: round(v * alpha))
-    box = shade.getbbox()
+def paint(layer: Image.Image, mask: Image.Image, region: tuple, colour, opacity: float) -> None:
+    """Blend a colour or gradient onto `layer` through the mask, scaled by its alpha and `opacity`."""
+    if isinstance(colour, Gradient):
+        colours = Image.fromarray(colour.render(region), "RGBA")
+    else:
+        colours = Image.new("RGBA", mask.size, colour[:3] + (colour[3],))
+    shade = mask.point(lambda v: round(v * opacity))
+    alpha = ImageChops.multiply(shade, colours.getchannel("A"))
+    box = alpha.getbbox()
     if box is None:
         return
     x0, y0 = region[0], region[1]
     target = (x0 + box[0], y0 + box[1], x0 + box[2], y0 + box[3])
-    overlay = Image.new("RGBA", (box[2] - box[0], box[3] - box[1]), colour[:3] + (0,))
-    overlay.putalpha(shade.crop(box))
+    overlay = colours.crop(box)
+    overlay.putalpha(alpha.crop(box))
     existing = layer.crop(target)
     layer.paste(Image.alpha_composite(existing, overlay), target[:2])
+
+
+def blur_layer(image: Image.Image, radius: float) -> Image.Image:
+    """Blur a layer's pixels, keeping their colour. Colour is blurred before transparency is applied,
+    so edges do not pick up a dark fringe."""
+    values = np.asarray(image, dtype=np.float64) / 255
+    alpha = values[..., 3:4]
+    premultiplied = np.concatenate([values[..., :3] * alpha, alpha], axis=2)
+    blurred_image = Image.fromarray(np.round(premultiplied * 255).astype(np.uint8), "RGBA")
+    blurred = np.asarray(blurred_image.filter(ImageFilter.GaussianBlur(radius)), dtype=np.float64) / 255
+    new_alpha = blurred[..., 3:4]
+    colour = np.where(new_alpha > 0, blurred[..., :3] / np.maximum(new_alpha, 1e-9), 0.0)
+    out = np.concatenate([np.clip(colour, 0, 1), new_alpha], axis=2)
+    return Image.fromarray(np.round(out * 255).astype(np.uint8), "RGBA")
 
 
 def draw_stroke(layer: Image.Image, points: list, radius: float, hardness: float, spacing: float,
@@ -201,6 +219,35 @@ def shape_coverage(size: tuple[int, int], shape: str, coords: list, filled: bool
 def draw_shape(layer: Image.Image, shape: str, coords: list, colour: tuple, opacity: float,
                filled: bool = True, width: float = 1) -> None:
     coverage = shape_coverage(layer.size, shape, coords, filled, width)
+    if coverage is not None:
+        region, mask = coverage
+        paint(layer, mask, region, colour, opacity)
+
+
+def path_coverage(size: tuple[int, int], subpaths: list, filled: bool, width: float = 1):
+    """Coverage of several flattened subpaths, as (region, mask). None if entirely off the picture.
+
+    `subpaths` is a list of (points, closed). A filled path is the union of its subpaths.
+    """
+    every_point = [point for points, _ in subpaths for point in points]
+    pad = 2 if filled else width / 2 + 2
+    region = _region(every_point, pad, size)
+    if region is None:
+        return None
+    sampler = _Sampler(region)
+    for points, closed in subpaths:
+        pts = sampler.points(points)
+        if filled:
+            sampler.draw.polygon(pts, fill=255)
+        else:
+            if closed:
+                pts = pts + pts[:1]
+            sampler.draw.line(pts, fill=255, width=round(width * AA), joint="curve")
+    return region, sampler.finish()
+
+
+def draw_path(layer: Image.Image, subpaths: list, colour, opacity: float, filled: bool = True, width: float = 1) -> None:
+    coverage = path_coverage(layer.size, subpaths, filled, width)
     if coverage is not None:
         region, mask = coverage
         paint(layer, mask, region, colour, opacity)

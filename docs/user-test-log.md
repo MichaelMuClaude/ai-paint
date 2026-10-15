@@ -56,3 +56,16 @@ I drew a night skyline: stars, a moon, twelve buildings with about 190 windows, 
 | 12 | Write 270 ops by hand | Too slow to write directly. I generated the window ops with a short script, then applied the file | No change. Scripts are a fine way to produce changes files |
 
 The picture is judged satisfactory for drawing and editing. The remaining gaps are layer reordering and rotation, both documented.
+
+## Round 5: the Pirate King (the picture was judged weak)
+
+I drew an original straw-hat captain (not an official character drawing) with the first version of the tool. The result was blocky, and the feedback was clear: the app needed to improve, not just my drawing.
+
+| # | What was missing | Why it hurt | Decision |
+|---|---|---|---|
+| 13 | Curves | Limbs and clothes were rectangles and polygons | `path` op with SVG path data (M, L, H, V, C, S, Q, T, Z), flattened to smooth edges |
+| 14 | Gradients | Flat colour made the sky and sun look like stickers | Linear and radial gradient fills for any `fill` or `outline` |
+| 15 | Glows and soft shadows | Shadows were hard-edged discs | Layer `blur`, so a shape on its own layer can glow or shade |
+| 16 | Numeric precision | Pure Pillow cannot do per-pixel gradients fast enough | Added numpy as a dependency (recorded in DESIGN.md and AGENTS.md) |
+
+The redrawn captain (`examples/pirate-king-changes.json`) renders in about 0.14 seconds. It has curved hair, a shaded vest, a glowing sun, and a soft shadow. Remaining weak spots: the face is still simple, and there is no arc command, so round shapes need curves.

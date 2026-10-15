@@ -26,6 +26,9 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 - Give important ops an `id` (for example `"id": "logo-box"`), so you can `update` or `remove` them later without looking up a generated id.
 - Operations are drawn in order, so a later one lands on top of an earlier one in the same layer.
 - To centre text on a point, use `"align": "center", "valign": "middle"`. Do not estimate the text width.
+- For organic shapes (faces, limbs, clothes), use `path` with curves. Plain rectangles and ellipses look blocky.
+- Use gradients for sky, sun, and shading. A `radial` gradient with a layer `blur` makes a glow.
+- For a shadow or glow, put the shape on its own layer with `"blur"` and a lower `"opacity"`.
 - To fill inside a shape, draw its outline first on the same layer, then use `fill` from a point inside it.
 - Colours are names such as `red`, or `#rrggbb` or `#rrggbbaa` for transparency.
 - Layers are stacked in list order, bottom first. A layer with `"visible": false` is not drawn.

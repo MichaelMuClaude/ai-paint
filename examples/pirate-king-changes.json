@@ -1,0 +1,440 @@
+{
+ "layers": [
+  {
+   "id": "sky"
+  },
+  {
+   "id": "glow",
+   "blur": 14
+  },
+  {
+   "id": "sea"
+  },
+  {
+   "id": "shadow",
+   "blur": 6,
+   "opacity": 0.35
+  },
+  {
+   "id": "back"
+  },
+  {
+   "id": "body"
+  },
+  {
+   "id": "face"
+  },
+  {
+   "id": "hat"
+  },
+  {
+   "id": "detail"
+  },
+  {
+   "id": "words"
+  }
+ ],
+ "ops": [
+  {
+   "id": "sky-grad",
+   "op": "rect",
+   "layer": "sky",
+   "box": [
+    0,
+    0,
+    400,
+    345
+   ],
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     0
+    ],
+    "to": [
+     0,
+     345
+    ],
+    "stops": [
+     [
+      0,
+      "#ff9e6d"
+     ],
+     [
+      0.6,
+      "#ffd6a5"
+     ],
+     [
+      1,
+      "#ffe9c2"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "sun-glow",
+   "op": "ellipse",
+   "layer": "glow",
+   "box": [
+    250,
+    20,
+    130,
+    130
+   ],
+   "fill": "#ffe08a"
+  },
+  {
+   "id": "sun",
+   "op": "ellipse",
+   "layer": "sky",
+   "box": [
+    282,
+    52,
+    66,
+    66
+   ],
+   "fill": {
+    "type": "radial",
+    "centre": [
+     315,
+     85
+    ],
+    "radius": 33,
+    "stops": [
+     [
+      0,
+      "#fff8dc"
+     ],
+     [
+      1,
+      "#ffd166"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "sea",
+   "op": "rect",
+   "layer": "sea",
+   "box": [
+    0,
+    340,
+    400,
+    160
+   ],
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     340
+    ],
+    "to": [
+     0,
+     500
+    ],
+    "stops": [
+     [
+      0,
+      "#2a9d8f"
+     ],
+     [
+      1,
+      "#15495f"
+     ]
+    ]
+   }
+  },
+  {
+   "op": "path",
+   "layer": "sea",
+   "d": "M 30 380 q 20 -8 40 0 t 40 0",
+   "outline": "#ffffffaa",
+   "width": 3
+  },
+  {
+   "op": "path",
+   "layer": "sea",
+   "d": "M 270 412 q 20 -8 40 0 t 40 0 t 40 0",
+   "outline": "#ffffffaa",
+   "width": 3
+  },
+  {
+   "op": "ellipse",
+   "layer": "shadow",
+   "box": [
+    118,
+    430,
+    170,
+    26
+   ],
+   "fill": "#06202b"
+  },
+  {
+   "id": "hair-back",
+   "op": "path",
+   "layer": "back",
+   "d": "M 144 196 C 134 120 266 118 256 196 C 262 214 260 236 248 244 C 232 250 168 250 152 244 C 140 236 138 214 144 196 Z",
+   "fill": "#1b1b1b"
+  },
+  {
+   "id": "torso",
+   "op": "path",
+   "layer": "body",
+   "d": "M 152 300 C 142 272 170 258 200 258 C 230 258 258 272 248 300 L 262 382 C 220 392 180 392 138 382 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     258
+    ],
+    "to": [
+     0,
+     392
+    ],
+    "stops": [
+     [
+      0,
+      "#d62839"
+     ],
+     [
+      1,
+      "#8a0d17"
+     ]
+    ]
+   }
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 178 262 C 186 286 214 286 222 262 L 200 306 Z",
+   "fill": "#f1faee"
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 150 380 L 250 380 L 254 428 L 146 428 Z",
+   "fill": "#2b2d42"
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 138 426 L 184 426 L 186 458 L 136 458 Z",
+   "fill": "#3a2e26"
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 216 426 L 262 426 L 264 458 L 214 458 Z",
+   "fill": "#3a2e26"
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 184 226 L 216 226 L 218 268 L 182 268 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     226
+    ],
+    "to": [
+     0,
+     268
+    ],
+    "stops": [
+     [
+      0,
+      "#e8a86e"
+     ],
+     [
+      1,
+      "#f1c27d"
+     ]
+    ]
+   }
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 152 282 C 132 300 118 322 108 348 C 106 356 118 362 124 354 C 136 330 150 314 168 300 Z",
+   "fill": "#e8a86e"
+  },
+  {
+   "op": "path",
+   "layer": "body",
+   "d": "M 248 282 C 268 258 284 236 296 214 C 302 206 314 210 316 218 C 316 236 300 258 270 300 Z",
+   "fill": "#e8a86e"
+  },
+  {
+   "op": "ellipse",
+   "layer": "body",
+   "box": [
+    290,
+    190,
+    40,
+    40
+   ],
+   "fill": "#f1c27d"
+  },
+  {
+   "id": "face",
+   "op": "path",
+   "layer": "face",
+   "d": "M 150 200 C 150 150 250 150 250 200 C 250 236 228 252 200 252 C 172 252 150 236 150 200 Z",
+   "fill": {
+    "type": "radial",
+    "centre": [
+     190,
+     190
+    ],
+    "radius": 70,
+    "stops": [
+     [
+      0,
+      "#f8d19a"
+     ],
+     [
+      1,
+      "#e0a46b"
+     ]
+    ]
+   }
+  },
+  {
+   "op": "path",
+   "layer": "face",
+   "d": "M 172 186 q 8 -8 16 0",
+   "outline": "#1b1b1b",
+   "width": 3
+  },
+  {
+   "op": "path",
+   "layer": "face",
+   "d": "M 212 186 q 8 -8 16 0",
+   "outline": "#1b1b1b",
+   "width": 3
+  },
+  {
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    176,
+    190,
+    11,
+    14
+   ],
+   "fill": "#1b1b1b"
+  },
+  {
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    214,
+    190,
+    11,
+    14
+   ],
+   "fill": "#1b1b1b"
+  },
+  {
+   "op": "ellipse",
+   "layer": "face",
+   "box": [
+    197,
+    210,
+    7,
+    6
+   ],
+   "fill": "#c98a5a"
+  },
+  {
+   "op": "path",
+   "layer": "hat",
+   "d": "M 112 166 C 112 152 288 152 288 166 C 288 178 112 178 112 166 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     150
+    ],
+    "to": [
+     0,
+     180
+    ],
+    "stops": [
+     [
+      0,
+      "#f7e09a"
+     ],
+     [
+      1,
+      "#c99a3c"
+     ]
+    ]
+   },
+   "outline": "#8a6a25",
+   "width": 2
+  },
+  {
+   "op": "path",
+   "layer": "hat",
+   "d": "M 164 150 C 160 90 240 90 236 150 C 236 158 164 158 164 150 Z",
+   "fill": {
+    "type": "linear",
+    "from": [
+     0,
+     90
+    ],
+    "to": [
+     0,
+     158
+    ],
+    "stops": [
+     [
+      0,
+      "#fbe9a8"
+     ],
+     [
+      1,
+      "#d8a84a"
+     ]
+    ]
+   },
+   "outline": "#8a6a25",
+   "width": 2
+  },
+  {
+   "op": "path",
+   "layer": "hat",
+   "d": "M 164 134 C 190 128 210 128 236 134 L 236 148 C 210 142 190 142 164 148 Z",
+   "fill": "#c1121f"
+  },
+  {
+   "op": "path",
+   "layer": "detail",
+   "d": "M 170 224 C 184 240 216 240 230 224",
+   "outline": "#7a1f1f",
+   "width": 4
+  },
+  {
+   "op": "path",
+   "layer": "detail",
+   "d": "M 174 206 L 184 224",
+   "outline": "#8a4b3a",
+   "width": 2
+  },
+  {
+   "op": "text",
+   "layer": "words",
+   "text": "Pirate King",
+   "point": [
+    200,
+    470
+   ],
+   "size": 30,
+   "align": "center",
+   "valign": "middle",
+   "colour": "#f1faee"
+  }
+ ]
+}

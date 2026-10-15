@@ -17,7 +17,7 @@ def _render(*op_list, width=100, height=100, background="#ffffff"):
 
 
 def test_registry_has_the_drawing_operations():
-    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place"}
+    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path"}
     for operation in ops.OPERATIONS.values():
         assert operation.summary
         assert operation.params

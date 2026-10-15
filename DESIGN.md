@@ -1,6 +1,6 @@
 # ai-paint: design notes
 
-Status: version 0.1.0 has the document format, validation, nine operations (anti-aliased shapes, strokes, text, pasted pictures, erasing and flood fill), change-by-id editing, grid and zoom views, and the CLI. 106 tests pass.
+Status: version 0.1.0 has the document format, validation, ten operations (anti-aliased shapes, strokes, SVG paths, text, pasted pictures, erasing and flood fill), gradient fills, layer blur, change-by-id editing, grid and zoom views, and the CLI. 130 tests pass.
 
 ## Why build it
 
@@ -48,7 +48,7 @@ Text, image placement, and erase come next.
 
 ### Decisions I made
 
-- **Pillow only, no numpy.** Pillow handles masks, compositing, and flood fill. numpy was not installed, and this keeps the dependency list to one.
+- **Pillow plus numpy.** Pillow handles masks, compositing, and flood fill. numpy was added in round 5 because gradients and layer blur need per-pixel maths that is too slow in pure Python.
 - **Full-canvas layers, no tile cache yet.** Each layer is one RGBA image. The canvas is capped at 25 million pixels, which keeps memory bounded. The 64 px tile cache from the first design is for when large canvases need it.
 - **Shapes are drawn as masks, then blended.** Each shape becomes an L-mode mask, and the colour is composited through it with its alpha and the op's `opacity`. This gives correct blending for semi-transparent colours.
 - **Strokes use `lighter` between dabs.** Overlapping dabs in one stroke do not add up, so a semi-transparent stroke has one strength along its path.

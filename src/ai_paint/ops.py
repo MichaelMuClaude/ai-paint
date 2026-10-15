@@ -38,8 +38,8 @@ OPACITY = Param("opacity", "float", "How strongly the colour is applied, 0 to 1"
                 required=False, default=1.0, minimum=0, maximum=1)
 WIDTH = Param("width", "int", "Outline width in pixels", required=False, default=1,
               minimum=1, maximum=MAX_WIDTH)
-FILL = Param("fill", "colour", "Fill colour, for example #ff0000 or #ff000080", required=False)
-OUTLINE = Param("outline", "colour", "Outline colour", required=False)
+FILL = Param("fill", "paint", "Fill: a colour such as #ff0000 or #ff000080, or a gradient object", required=False)
+OUTLINE = Param("outline", "paint", "Outline: a colour or a gradient object", required=False)
 
 
 def _need_fill_or_outline(values):
@@ -220,6 +220,29 @@ _register(
         OPACITY,
     ],
     _draw_place,
+)
+
+
+def _draw_path(layer, v, size):
+    if v["fill"] is not None:
+        raster.draw_path(layer, v["d"], v["fill"], v["opacity"], filled=True)
+    if v["outline"] is not None:
+        raster.draw_path(layer, v["d"], v["outline"], v["opacity"], filled=False, width=v["width"])
+
+
+_register(
+    "path",
+    "Draw a shape or line from SVG path data: M, L, H, V, C, S, Q, T, and Z, in absolute or relative form. "
+    "Curves are smooth. Use it for organic shapes such as faces, limbs, and clothes.",
+    [
+        Param("d", "path", "SVG path data, for example 'M 10 10 C 40 0 60 0 90 10 L 90 60 Z'"),
+        FILL,
+        OUTLINE,
+        WIDTH,
+        OPACITY,
+    ],
+    _draw_path,
+    _need_fill_or_outline,
 )
 
 

@@ -21,7 +21,9 @@ This file is for AI coding agents that read, test, or change this project. The h
 src/ai_paint/
   params.py    parameter types, colour parsing, value checks
   ops.py       operations, their parameters and drawing code
-  raster.py    brush dabs, shape masks, compositing, flood fill
+  raster.py    brush dabs, shape masks, compositing, flood fill, layer blur
+  svgpath.py   SVG path data: parsing and curve flattening
+  gradient.py  linear and radial gradient fills
   document.py  document schema, validation, rendering, apply, save
   view.py      grid overlay, crop and zoom (for looking only)
   cli.py       new, info, ops, validate, apply, render
@@ -54,4 +56,4 @@ python3 -m venv ~/.venvs/ai-paint-dev
 
 - One change per pull request, with tests.
 - Keep the Python floor at 3.10.
-- Do not add a dependency unless Pillow cannot do the job.
+- Do not add a dependency unless Pillow cannot do the job. numpy was added for gradients and layer blur, which need per-pixel maths.

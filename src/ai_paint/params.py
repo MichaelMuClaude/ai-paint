@@ -5,9 +5,12 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageColor
 
+from ai_paint import svgpath
 from ai_paint.errors import PaintError
+from ai_paint.gradient import Gradient
 
 COORD_LIMIT = 100_000
 MAX_SIZE = 10_000
@@ -21,7 +24,7 @@ IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
 @dataclass(frozen=True)
 class Param:
     name: str
-    kind: str  # int, float, bool, colour, point, points, box, choice, text, font, image
+    kind: str  # int, float, bool, colour, paint, point, points, box, choice, text, path, font, image
     summary: str
     required: bool = True
     default: object = None
@@ -44,6 +47,51 @@ def parse_colour(value) -> tuple[int, int, int, int]:
     if len(rgba) == 3:
         rgba = (*rgba, 255)
     return rgba
+
+
+def _gradient_stops(name: str, value) -> list:
+    if not isinstance(value, list) or len(value) < 2:
+        raise PaintError(f"{name} stops must be a list of at least two [position, colour] pairs")
+    stops = []
+    for item in value:
+        if not isinstance(item, list) or len(item) != 2 or not _is_number(item[0]) or not 0 <= item[0] <= 1:
+            raise PaintError(f"{name} stops must be [position, colour] with a position from 0 to 1")
+        stops.append((float(item[0]), parse_colour(item[1])))
+    positions = [position for position, _ in stops]
+    if positions != sorted(positions):
+        raise PaintError(f"{name} stop positions must go up from 0 to 1")
+    return stops
+
+
+def parse_paint(name: str, value):
+    """A colour name or #hex, or a gradient: {"type": "linear", "from": [x, y], "to": [x, y], "stops": [...]}
+    or {"type": "radial", "centre": [x, y], "radius": r, "stops": [...]}."""
+    if isinstance(value, str):
+        return parse_colour(value)
+    if not isinstance(value, dict):
+        raise PaintError(f"{name} must be a colour, or a gradient object with type, stops, and geometry")
+    kind = value.get("type")
+    if kind == "linear":
+        allowed = {"type", "from", "to", "stops"}
+    elif kind == "radial":
+        allowed = {"type", "centre", "radius", "stops"}
+    else:
+        raise PaintError(f"{name} gradient type must be 'linear' or 'radial'")
+    unknown = sorted(set(value) - allowed)
+    if unknown:
+        raise PaintError(f"{name} gradient has unknown field(s): {', '.join(unknown)}")
+    stops = _gradient_stops(name, value.get("stops"))
+    if kind == "linear":
+        start = _point(Param(name, "point", ""), value.get("from"), (10**9, 10**9))
+        end = _point(Param(name, "point", ""), value.get("to"), (10**9, 10**9))
+        if start == end:
+            raise PaintError(f"{name} linear gradient needs different 'from' and 'to' points")
+        return Gradient("linear", stops, start=start, end=end)
+    centre = _point(Param(name, "point", ""), value.get("centre"), (10**9, 10**9))
+    radius = value.get("radius")
+    if not _is_number(radius) or radius <= 0:
+        raise PaintError(f"{name} radial gradient needs a positive radius")
+    return Gradient("radial", stops, centre=centre, radius=float(radius))
 
 
 def _is_number(value) -> bool:
@@ -161,6 +209,10 @@ def coerce(param: Param, value, size: tuple[int, int], base: Path | None = None)
         if len(value) > MAX_TEXT:
             raise PaintError(f"{param.name} must be at most {MAX_TEXT} characters")
         return value
+    if kind == "paint":
+        return parse_paint(param.name, value)
+    if kind == "path":
+        return svgpath.parse(value)
     if kind == "font":
         return _font(param, value, base)
     if kind == "image":

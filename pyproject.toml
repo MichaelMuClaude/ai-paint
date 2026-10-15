@@ -9,7 +9,7 @@ description = "Draw pictures from a JSON document of explicit operations that an
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
-dependencies = ["pillow>=10.1"]
+dependencies = ["pillow>=10.1", "numpy>=1.24"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
