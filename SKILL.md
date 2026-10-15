@@ -1,6 +1,6 @@
 ---
 name: ai-paint
-description: Draw or edit a picture from a JSON document of explicit operations (strokes, lines, rectangles, ellipses, polygons, text, pasted pictures, erasing, and flood fills, on layers). Use when the user asks to draw, sketch, paint, colour in, or mock up a picture from scratch. Every change is a separate operation with an id, so an agent can add, check, and correct one piece at a time. The input document is never overwritten.
+description: Draw or edit pictures and manga pages from a JSON document of layered operations, including SVG code (groups, transforms, mirroring, clip paths, gradients, blur filters), curves, tapered strokes, text in Latin or CJK fonts, speech balloons, screentones, pasted pictures, and tracing a sketch into line art. Use when the user asks to draw, paint, illustrate, design a character, or lay out a comic or manga page. Every change is a separate operation with an id, so an agent can check and correct one piece at a time, and render grid or zoomed views to look closely. The input document is never overwritten.
 ---
 
 # ai-paint
