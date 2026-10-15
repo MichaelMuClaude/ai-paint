@@ -18,6 +18,7 @@ from ai_paint.gradient import Gradient
 
 AA = 3  # samples per pixel along each axis, so each pixel is averaged from AA x AA samples
 MAX_DABS = 200_000
+MIN_TAPER = 0.12  # the thinnest a tapered stroke gets, as a fraction of its full width
 
 # hardness: 1.0 means a hard edge; 0.0 means the alpha fades from the centre to the edge.
 # spacing: distance between dabs as a fraction of the brush radius.
@@ -48,25 +49,30 @@ def brush_mask(radius: float, hardness: float) -> Image.Image:
     return mask
 
 
-def _dab_positions(points: list, step: float) -> list:
-    """Points spaced `step` picture pixels apart along the path, always including the first and last points."""
+def _dab_positions(points: list, step: float) -> tuple[list, float]:
+    """Dab centres spaced `step` pixels apart along the path, as (x, y, distance_along_path) triples.
+
+    The first and last points are always included. Also returns the total length of the path.
+    """
     if len(points) == 1:
-        return [tuple(points[0])]
-    out = [tuple(points[0])]
+        return [(points[0][0], points[0][1], 0.0)], 0.0
+    out = [(points[0][0], points[0][1], 0.0)]
     travelled = 0.0  # distance covered since the last dab
+    along_path = 0.0  # distance from the start of the whole path to the start of this segment
     for (x0, y0), (x1, y1) in zip(points, points[1:]):
         length = math.hypot(x1 - x0, y1 - y0)
         if length == 0:
             continue
         along = step - travelled  # distance from this segment's start to its next dab
         while along <= length:
-            t = along / length
-            out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
+            t_seg = along / length
+            out.append((x0 + (x1 - x0) * t_seg, y0 + (y1 - y0) * t_seg, along_path + along))
             along += step
         travelled = length - (along - step)
-    if out[-1] != tuple(points[-1]):
-        out.append(tuple(points[-1]))
-    return out
+        along_path += length
+    if (out[-1][0], out[-1][1]) != tuple(points[-1]):
+        out.append((points[-1][0], points[-1][1], along_path))
+    return out, along_path
 
 
 def _stamp(big: Image.Image, dab: Image.Image, cx: float, cy: float) -> None:
@@ -167,21 +173,28 @@ def blur_layer(image: Image.Image, radius: float) -> Image.Image:
 
 
 def draw_stroke(layer: Image.Image, points: list, radius: float, hardness: float, spacing: float,
-                colour: tuple, opacity: float) -> None:
-    """Paint a path of round dabs. `radius` and `spacing` are in picture pixels."""
+                colour: tuple, opacity: float, taper: float = 0.0) -> None:
+    """Paint a path of round dabs. `radius` and `spacing` are in picture pixels.
+
+    `taper` is the fraction of the path's length at each end over which the line narrows to a point.
+    """
     region = _region(points, radius + 2, layer.size)
     if region is None:
         return
     step = max(1.0, spacing * radius)
-    positions = _dab_positions(points, step)
+    positions, total = _dab_positions(points, step)
     if len(positions) > MAX_DABS:
         raise PaintError(
             f"stroke needs {len(positions)} dabs, the limit is {MAX_DABS}; "
             "use fewer points or a larger size"
         )
     sampler = _Sampler(region)
-    dab = brush_mask(radius * AA, hardness)
-    for x, y in positions:
+    for x, y, along in positions:
+        dab_radius = radius
+        if taper > 0 and total > 0:
+            distance_to_end = min(along, total - along)
+            dab_radius = radius * max(MIN_TAPER, min(1.0, distance_to_end / (taper * total)))
+        dab = brush_mask(round(dab_radius * AA, 2), hardness)
         _stamp(sampler.big, dab, *sampler.point((x, y)))
     paint(layer, sampler.finish(), region, colour, opacity)
 

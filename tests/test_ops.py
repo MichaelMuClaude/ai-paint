@@ -392,3 +392,21 @@ def test_outline_width_can_be_a_decimal():
     with pytest.raises(PaintError, match="width must be at least 0.5"):
         ops.normalise({"op": "path", "layer": "l1", "d": "M 0 0 L 9 9", "outline": "#000000", "width": 0.2},
                       (100, 100))
+
+
+def test_tapered_stroke_is_thin_at_the_ends_and_full_in_the_middle():
+    img = _render({"op": "stroke", "layer": "l1", "points": [[10, 50], [90, 50]], "size": 10,
+                   "colour": "#000000", "taper": 0.4})
+
+    def ink(x):
+        return sum(1 for y in range(100) if img.getpixel((x, y))[0] < 128)
+
+    assert ink(12) < ink(50)  # near the start, thinner
+    assert ink(88) < ink(50)  # near the end, thinner
+    assert ink(50) >= 8  # the middle keeps the full width of 10
+
+
+def test_untapered_stroke_keeps_its_width_to_the_ends():
+    img = _render({"op": "stroke", "layer": "l1", "points": [[10, 50], [90, 50]], "size": 10,
+                   "colour": "#000000"})
+    assert img.getpixel((12, 50)) == BLACK

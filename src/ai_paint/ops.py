@@ -50,7 +50,7 @@ def _need_fill_or_outline(values):
 def _draw_stroke(layer, v, size):
     style = raster.BRUSHES[v["brush"]]
     raster.draw_stroke(layer, v["points"], v["size"] / 2, style["hardness"], style["spacing"],
-                       v["colour"], v["opacity"])
+                       v["colour"], v["opacity"], taper=v["taper"])
 
 
 _register(
@@ -63,6 +63,8 @@ _register(
         OPACITY,
         Param("brush", "choice", "round: hard edge. soft: feathered edge", required=False,
               default="round", choices=tuple(raster.BRUSHES)),
+        Param("taper", "float", "How much each end narrows to a point, as a fraction of the length, 0 to 0.5. "
+              "0 keeps the width even.", required=False, default=0.0, minimum=0, maximum=0.5),
     ],
     _draw_stroke,
 )
