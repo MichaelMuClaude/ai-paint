@@ -81,3 +81,7 @@ The round-5 face was two dots and a line, and it looked bad. The problem was the
 | 19 | Feature layering | The hat brim hid the eyebrows | Drew the features above the hat, and raised the hat 10 px |
 
 The new face has almond eyes with irises, highlights, and eyelids; tapered brows; a nose with nostrils; an open grin with teeth; blush on a blurred layer; and ears. It is checked at 4x zoom. The redrawn captain is `examples/pirate-king-changes.json`. The tests now number 136.
+
+## Round 7: reference check
+
+I checked the reference online (Wikipedia's article on Luffy, plus a fan article on early sketches). The article describes the classic outfit as a red vest and denim shorts, with a yellow sash in later arcs. The captain now has a yellow sash with a hanging end, and denim shorts with a blue gradient. The scar under the left eye and the straw hat with a red band were already there. Still missing from the reference: the chest scar and the messy hair shape.
