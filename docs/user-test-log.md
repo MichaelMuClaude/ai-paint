@@ -100,3 +100,16 @@ What other open-source projects do:
 What I added: a layer-level `outline`, which draws a dark line around every shape on the layer. The captain now uses outlines on the hair, body, face and hat. It reads as a character now, but it is still not a polished cartoon.
 
 Next options, not yet built: a `trace` command that turns a user-supplied sketch into path ops (like Potrace), and rigging for moving parts.
+
+## Round 9: drawing with SVG code
+
+The anime figures drawn with ai-paint's own ops still looked crude. The tool's own vocabulary was the limit: no groups, no transforms, no clipping, no reuse. SVG has all of these, and it is a language an agent writes fluently.
+
+| # | What was missing | Decision |
+|---|---|---|
+| 20 | Groups, transforms and mirroring | The `svg` op draws SVG code through the system's librsvg, inside a box on a layer |
+| 21 | Clipping (an iris inside its eye) | `clipPath` in SVG |
+| 22 | Drawing a symmetric part once | `<use>` with `scale(-1 1)` |
+| 23 | Safety | An allow-list: no scripts, no event attributes, no outside links, no DOCTYPE |
+
+The redrawn girl (`examples/anime-girl.svg`) renders in about 0.13 seconds and is the best character so far.

@@ -230,6 +230,38 @@ _register(
 )
 
 
+def _need_svg_or_file(values):
+    if (values["svg"] is None) == (values["file"] is None):
+        raise PaintError("give either svg (markup) or file (a .svg file), not both")
+
+
+def _draw_svg(layer, v, size):
+    from ai_paint.svgrender import render_svg, wrap_fragment
+
+    box = v["box"] if v["box"] is not None else [0, 0, size[0], size[1]]
+    width, height = max(1, round(box[2])), max(1, round(box[3]))
+    markup = v["svg"] if v["svg"] is not None else v["file"]
+    picture = render_svg(wrap_fragment(markup, width, height), width, height)
+    raster.place_image(layer, picture, [box[0], box[1]], v["opacity"])
+
+
+_register(
+    "svg",
+    "Draw SVG code: groups, transforms (rotate, scale, mirror), clip paths, masks, <use> to reuse a "
+    "shape, gradients, filters such as feGaussianBlur and feDropShadow, and text. Elements without an "
+    "<svg> root use the box's own pixels as coordinates. Scripts and outside links are refused.",
+    [
+        Param("svg", "svg", "SVG markup, for example '<circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"red\"/>'",
+              required=False),
+        Param("file", "svgfile", "A .svg file, relative to the document's folder, instead of svg", required=False),
+        Param("box", "box", "Where to draw it [x, y, width, height]; the whole canvas if left out", required=False),
+        OPACITY,
+    ],
+    _draw_svg,
+    _need_svg_or_file,
+)
+
+
 def _draw_spline(layer, v, size):
     points = svgpath.spline(v["points"], closed=v["closed"])
     subpaths = [(points, v["closed"])]

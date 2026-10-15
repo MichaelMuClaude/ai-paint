@@ -91,7 +91,7 @@ def test_ops_lists_every_operation_as_json():
     result = run("ops")
     assert result.returncode == 0
     names = [entry["op"] for entry in json.loads(result.stdout)]
-    assert set(names) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path", "balloon", "spline"}
+    assert set(names) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path", "balloon", "spline", "svg"}
 
 
 def test_missing_file_is_a_clean_error(tmp_path):

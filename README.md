@@ -45,6 +45,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 | `place` | Paste a PNG, JPEG, or WebP picture with its top-left corner at a point. Its own transparency is kept. `width` or `height` resizes it, keeping its proportions. |
 | `erase` | Make a `rect` or `ellipse` box transparent on its own layer. `opacity` 1 removes it fully. |
 | `balloon` | A speech balloon: an ellipse around centred text, with a `tail` that points at a character. Text uses `size`, and `font` takes a CJK font for Chinese or Japanese. |
+| `svg` | Draw SVG code inside a box on a layer: groups and transforms (rotate, scale, mirror), clip paths, masks, `<use>` to reuse shapes, gradients, blur and drop-shadow filters, and text. Give `svg` (markup) or `file` (a `.svg` file). Scripts, event attributes and outside links are refused. Drawn by the system's librsvg. |
 | `spline` | A smooth curve through key points you give, so you do not have to work out control points. `closed` loops back to the start. Fill and outline work. |
 | `path` | A shape or line from SVG path data: `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A` (arc), `Z`, absolute or relative. Arc flags are separate `0` or `1` numbers. Curves are smooth. Use it for faces, limbs, clothing, and anything organic. `fill` and `outline` both work. |
 | `fill` | Flood fill from a seed point on its layer. `tolerance` (0 to 255) is the total difference allowed across red, green, blue and alpha, so `6` lets through a pixel that is 2 darker in each of R, G and B. |
@@ -67,6 +68,16 @@ A fill can also be a screentone, the dot pattern manga artists use for grey: `{"
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). Relative picture and font paths are read from the document's own folder, so a document and its pictures can be moved together. The `fill` op sets pixels to the colour and does not blend.
 
 - Shapes and strokes are anti-aliased: edges are drawn at three times the resolution and averaged down. Coordinates are continuous, so the point `(x, y)` is a pixel corner, and a box `[x, y, 20, 20]` covers exactly 20 by 20 pixels. Outlines are centred on the box edge.
+
+## Drawing with SVG code
+
+For detailed drawings, especially characters, the `svg` op is the most flexible tool. An agent can write SVG it already knows, and still use ai-paint's layers, grid views, balloons, screentones and tracing around it:
+
+```bash
+ai-paint apply page.json --change '{"ops":[{"op":"svg","layer":"l1","file":"girl.svg"}]}' -o page-2.json
+```
+
+Without an `<svg>` root, the markup's coordinates are the box's own pixels. SVG drawing needs librsvg and cairo (packages `librsvg2-2` and `libcairo2` on Debian and Ubuntu), loaded at run time and not bundled. See `examples/anime-girl.svg`: the eye is defined once and mirrored with `<use>`, the iris is clipped to the eye white, and blush uses a blur filter.
 
 ## Tracing a sketch
 

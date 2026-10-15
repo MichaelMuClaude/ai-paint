@@ -24,6 +24,7 @@ src/ai_paint/
   raster.py    brush dabs, shape masks, compositing, flood fill, layer blur
   svgpath.py   SVG path data: parsing and curve flattening
   gradient.py  linear and radial gradient fills
+  svgrender.py SVG allow-list check, and drawing through the system's librsvg and cairo (ctypes)
   document.py  document schema, validation, rendering, apply, save
   view.py      grid overlay, crop and zoom (for looking only)
   cli.py       new, info, ops, validate, apply, render
@@ -47,6 +48,7 @@ python3 -m venv ~/.venvs/ai-paint-dev
 
 ## Known behaviour to keep in mind
 
+- The `svg` op must keep its allow-list in `svgrender.py`: no scripts, no event attributes, no `<image>` or `<foreignObject>`, no DOCTYPE, and every `href` or `url()` must point inside the same SVG. Add a refusal test for every new rule.
 - `apply` only changes ops by id: `update` merges fields, `remove` deletes. An op id cannot be changed.
 - `fill` tolerance is the total difference over red, green, blue and alpha, because that is what Pillow's flood fill uses. The README states it.
 - Strokes merge their dabs with `lighter`, so a semi-transparent stroke has one strength along its path.

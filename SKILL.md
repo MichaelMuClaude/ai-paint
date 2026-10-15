@@ -26,6 +26,7 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 - Give important ops an `id` (for example `"id": "logo-box"`), so you can `update` or `remove` them later without looking up a generated id.
 - Operations are drawn in order, so a later one lands on top of an earlier one in the same layer.
 - To centre text on a point, use `"align": "center", "valign": "middle"`. Do not estimate the text width.
+- For characters and detailed drawings, prefer the `svg` op: write SVG with `<defs>`, `<use>` (mirror symmetric parts with `scale(-1 1)`), `clipPath` (keep an iris inside its eye), gradients, and `feGaussianBlur` for blush and shadows. It gives far better results than placing shapes one by one.
 - For organic shapes (faces, limbs, clothes), use `path` with curves or arcs (`A`). Plain rectangles and ellipses look blocky.
 - For a limb, use one `stroke` with `size` and `size_end`, so it thins from shoulder to wrist. It is easier than a closed path.
 - For a smooth outline, give a `spline` a few key points instead of writing control points by hand.

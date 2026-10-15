@@ -25,7 +25,7 @@ IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
 @dataclass(frozen=True)
 class Param:
     name: str
-    kind: str  # int, float, bool, colour, paint, point, points, box, choice, text, path, font, image
+    kind: str  # int, float, bool, colour, paint, point, points, box, choice, text, path, svg, svgfile, font, image
     summary: str
     required: bool = True
     default: object = None
@@ -234,6 +234,26 @@ def coerce(param: Param, value, size: tuple[int, int], base: Path | None = None)
         return parse_paint(param.name, value)
     if kind == "path":
         return svgpath.parse(value)
+    if kind == "svg":
+        from ai_paint.svgrender import check_svg, wrap_fragment
+
+        if not isinstance(value, str):
+            raise PaintError(f"{param.name} must be SVG markup text")
+        check_svg(wrap_fragment(value, 1, 1))
+        return value
+    if kind == "svgfile":
+        from ai_paint.svgrender import MAX_MARKUP, check_svg, wrap_fragment
+
+        if not isinstance(value, str) or not value.lower().endswith(".svg"):
+            raise PaintError(f"{param.name} must be a .svg file")
+        path = _resolve(value, base)
+        if not path.is_file():
+            raise PaintError(f"{param.name} file does not exist: {path}")
+        if path.stat().st_size > MAX_MARKUP:
+            raise PaintError(f"{param.name} is larger than {MAX_MARKUP} bytes")
+        markup = path.read_text(encoding="utf-8")
+        check_svg(wrap_fragment(markup, 1, 1))
+        return markup
     if kind == "font":
         return _font(param, value, base)
     if kind == "image":

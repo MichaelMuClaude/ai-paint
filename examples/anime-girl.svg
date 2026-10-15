@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700" viewBox="0 0 600 700">
+  <defs>
+    <linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfe6ff"/><stop offset="1" stop-color="#fdeef4"/>
+    </linearGradient>
+    <linearGradient id="hairG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6a5fd4"/><stop offset="1" stop-color="#231a5c"/>
+    </linearGradient>
+    <radialGradient id="skinG" cx="0.45" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#fff5ee"/><stop offset="1" stop-color="#f3cbb3"/>
+    </radialGradient>
+    <radialGradient id="irisG" cx="0.5" cy="0.3" r="0.7">
+      <stop offset="0" stop-color="#a8dcff"/><stop offset="0.45" stop-color="#3f7fe0"/><stop offset="1" stop-color="#121c55"/>
+    </radialGradient>
+    <linearGradient id="shirtG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d4dcec"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="soft2"><feGaussianBlur stdDeviation="2.5"/></filter>
+
+    <path id="faceShape" d="M 210 250 C 210 168 390 168 390 250 C 390 330 352 396 300 412 C 248 396 210 330 210 250 Z"/>
+    <clipPath id="faceClip"><use href="#faceShape"/></clipPath>
+
+    <path id="eyeShape" d="M -36 4 C -30 -30 26 -32 36 -6 C 32 22 -24 26 -36 4 Z"/>
+    <clipPath id="eyeClip"><use href="#eyeShape"/></clipPath>
+    <g id="eye">
+      <use href="#eyeShape" fill="#ffffff"/>
+      <g clip-path="url(#eyeClip)">
+        <ellipse cx="3" cy="0" rx="20" ry="27" fill="url(#irisG)"/>
+        <ellipse cx="3" cy="3" rx="9" ry="13" fill="#0c0f30"/>
+        <path d="M -40 -34 L 44 -34 L 44 -14 C 20 -24 -20 -24 -40 -10 Z" fill="#2a1840" opacity="0.2"/>
+      </g>
+      <circle cx="-5" cy="-10" r="6.5" fill="#ffffff"/>
+      <circle cx="10" cy="12" r="3" fill="#ffffff" opacity="0.9"/>
+      <path d="M -39 5 C -32 -34 26 -38 41 -8 L 43 -3 C 26 -28 -26 -26 -35 8 Z" fill="#1a1230"/>
+      <path d="M -36 -4 L -50 -15 L -41 3 Z" fill="#1a1230"/>
+      <path d="M -24 18 C -8 25 14 24 28 13" stroke="#6b3f4a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </g>
+    <path id="brow" d="M -38 2 C -20 -12 16 -13 34 -3 C 16 -7 -18 -5 -38 6 Z" fill="#2b1f5a"/>
+  </defs>
+
+  <rect width="600" height="700" fill="url(#bgG)"/>
+
+  <!-- back hair -->
+  <path d="M 300 118 C 412 118 452 210 447 322 C 444 420 432 472 410 505 L 382 470 C 392 420 396 360 390 300
+           L 210 300 C 204 360 208 420 218 470 L 190 505 C 168 472 156 420 153 322 C 148 210 188 118 300 118 Z"
+        fill="url(#hairG)" stroke="#1a1240" stroke-width="2"/>
+
+  <!-- neck and shirt -->
+  <path d="M 272 378 L 328 378 L 336 456 L 264 456 Z" fill="#f0c3a8"/>
+  <ellipse cx="300" cy="392" rx="40" ry="14" fill="#b9806a" opacity="0.45" filter="url(#soft2)"/>
+  <path d="M 150 482 C 200 444 250 444 300 470 C 350 444 400 444 450 482 L 482 700 L 118 700 Z"
+        fill="url(#shirtG)" stroke="#3a3350" stroke-width="2"/>
+  <path d="M 232 450 L 300 522 L 368 450 L 424 474 L 300 566 L 176 474 Z" fill="#1d2b5a" stroke="#111a3a" stroke-width="2"/>
+  <path d="M 196 486 L 300 562 L 404 486" stroke="#ffffff" stroke-width="3" fill="none"/>
+  <path d="M 300 540 C 270 520 250 540 268 560 C 280 572 296 556 300 546 C 304 556 320 572 332 560 C 350 540 330 520 300 540 Z"
+        fill="#d63a4a" stroke="#8a1a28" stroke-width="1.6"/>
+  <path d="M 294 548 L 282 600 L 296 592 L 300 560 L 304 592 L 318 600 L 306 548 Z" fill="#c22f3e"/>
+
+  <!-- face -->
+  <use href="#faceShape" fill="url(#skinG)" stroke="#b9806a" stroke-width="1.8"/>
+  <g clip-path="url(#faceClip)">
+    <path d="M 196 196 C 240 256 360 256 404 196 L 404 140 L 196 140 Z" fill="#c98a8a" opacity="0.45" filter="url(#soft)"/>
+  </g>
+  <ellipse cx="236" cy="336" rx="22" ry="10" fill="#ff8f8f" opacity="0.55" filter="url(#soft2)"/>
+  <ellipse cx="364" cy="336" rx="22" ry="10" fill="#ff8f8f" opacity="0.55" filter="url(#soft2)"/>
+
+  <!-- eyes and brows, the right side mirrored from the left -->
+  <use href="#eye" transform="translate(258 290)"/>
+  <use href="#eye" transform="translate(342 290) scale(-1 1)"/>
+  <use href="#brow" transform="translate(258 246)"/>
+  <use href="#brow" transform="translate(342 246) scale(-1 1)"/>
+
+  <!-- nose and mouth -->
+  <path d="M 303 322 L 298 331" stroke="#d48f74" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 288 360 Q 300 377 312 360 Q 300 366 288 360 Z" fill="#c8505a"/>
+  <path d="M 286 359 Q 300 370 314 359" stroke="#9a3e44" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- side locks and bangs -->
+  <path d="M 214 226 C 194 300 198 384 224 448 C 214 384 216 318 230 258 Z" fill="url(#hairG)" stroke="#1a1240" stroke-width="2"/>
+  <path d="M 386 226 C 406 300 402 384 376 448 C 386 384 384 318 370 258 Z" fill="url(#hairG)" stroke="#1a1240" stroke-width="2"/>
+  <path d="M 204 262 C 198 170 240 128 300 126 C 360 128 402 170 396 262 C 386 232 372 216 360 208
+           C 362 232 356 248 348 260 C 340 232 330 216 318 208 C 318 230 312 246 302 258 C 296 232 288 216 276 210
+           C 276 232 268 248 256 258 C 250 234 240 220 228 214 C 226 234 220 250 204 262 Z"
+        fill="url(#hairG)" stroke="#1a1240" stroke-width="2"/>
+  <path d="M 252 150 C 262 176 268 200 270 222" stroke="#1c1450" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M 314 146 C 318 172 320 196 318 218" stroke="#1c1450" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M 352 154 C 356 176 358 196 356 214" stroke="#1c1450" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M 240 166 C 270 148 330 148 360 166" stroke="#d6d0ff" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.65"/>
+  <path d="M 404 220 C 414 260 414 300 410 330" stroke="#8d84e8" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- hair clip -->
+  <path d="M 362 180 L 368 194 L 383 195 L 371 204 L 375 219 L 362 210 L 349 219 L 353 204 L 341 195 L 356 194 Z"
+        fill="#ffd34d" stroke="#b8860b" stroke-width="1.5"/>
+</svg>
