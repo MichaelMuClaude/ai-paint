@@ -69,7 +69,7 @@ Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (
 
 ## Tracing a sketch
 
-`ai-paint trace PICTURE.png -o lines.json` turns the picture's dark lines into smooth path ops. Pixels darker than `--threshold` (default 30) count as lines. The output is a changes file: `apply` it to a canvas of the size the command reports, and the lines appear on their own layer. `--scale` and `--offset` move and resize the traced lines, so a figure can go into a panel. Tracing uses [ImageTracer](src/ai_paint/vendor/README.md), which is public domain, and needs Node.js.
+`ai-paint trace PICTURE.png -o lines.json` turns the picture's dark lines into smooth path ops. Pixels darker than `--threshold` (default 30) count as lines. The output is a changes file: `apply` it to a canvas of the size the command reports, and the lines appear on their own layer. `--scale` and `--offset` move and resize the traced lines, so a figure can go into a panel. `--thicken N` grows the lines by N pixels (0 to 5) before tracing; use 2 for manga-weight lines. Thickening the mask works better than a layer outline, which doubles thin lines. Tracing uses [ImageTracer](src/ai_paint/vendor/README.md), which is public domain, and needs Node.js.
 
 ## Commands
 

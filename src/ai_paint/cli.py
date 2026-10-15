@@ -144,7 +144,8 @@ def _trace(args) -> int:
         return _fail("offset must be two numbers x,y")
     try:
         changes, info = trace_to_changes(source, threshold=args.threshold, layer=args.layer,
-                                         colour=args.colour, scale=args.scale, offset=offset)
+                                         colour=args.colour, scale=args.scale, offset=offset,
+                                         thicken=args.thicken)
         document.save(changes, output, force=args.force)
     except PaintError as exc:
         return _fail(str(exc))
@@ -286,6 +287,8 @@ def main() -> None:
     trace.add_argument("-o", "--output", required=True, help="Changes file to write (.json)")
     trace.add_argument("--threshold", type=int, default=30,
                        help="Pixels darker than this (0 to 255) count as lines. Default 30.")
+    trace.add_argument("--thicken", type=int, default=0,
+                       help="Grow the lines by this many pixels (0 to 5) before tracing, for bolder lines")
     trace.add_argument("--layer", default="lines", help="Layer id for the traced lines")
     trace.add_argument("--colour", default="#000000", help="Colour of the traced lines")
     trace.add_argument("--scale", type=float, default=1.0, help="Size factor for the traced lines")

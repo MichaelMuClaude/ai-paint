@@ -209,3 +209,31 @@ def test_trace_refuses_a_bad_threshold(tmp_path):
     result = run("trace", str(picture), "-o", str(tmp_path / "c.json"), "--threshold", "300")
     assert result.returncode == 1
     assert "threshold must be" in result.stderr
+
+
+def test_trace_thicken_makes_the_lines_bolder(tmp_path):
+    import shutil
+
+    import pytest
+
+    if shutil.which("node") is None:
+        pytest.skip("Node.js is not installed")
+    from PIL import ImageDraw
+    picture = tmp_path / "line.png"
+    img = Image.new("RGBA", (80, 40), (255, 255, 255, 255))
+    ImageDraw.Draw(img).line([(5, 20), (75, 20)], fill=(0, 0, 0, 255), width=2)
+    img.save(picture)
+    from ai_paint.errors import PaintError
+    from ai_paint.trace import trace_to_changes
+    thin, _ = trace_to_changes(picture, thicken=0)
+    thick, _ = trace_to_changes(picture, thicken=2)
+
+    def height_of(changes):
+        import re
+        numbers = [float(n) for n in re.findall(r"-?\d+\.?\d*", changes["ops"][0]["d"])]
+        ys = numbers[1::2]
+        return max(ys) - min(ys)
+
+    assert height_of(thick) > height_of(thin)
+    with pytest.raises(PaintError, match="thicken"):
+        trace_to_changes(picture, thicken=9)

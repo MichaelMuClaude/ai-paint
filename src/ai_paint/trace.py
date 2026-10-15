@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 from ai_paint.errors import PaintError
 
@@ -17,12 +17,20 @@ ATTRIBUTE = re.compile(r'(\w+)="([^"]*)"')
 NUMBER = re.compile(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?")
 
 
-def _line_image(picture: Path, threshold: int, out: Path) -> tuple[int, int]:
-    """Write the dark, opaque pixels as black on white, as raw RGBA. Returns the picture's size."""
+def _line_image(picture: Path, threshold: int, thicken: int, out: Path) -> tuple[int, int]:
+    """Write the dark, opaque pixels as black on white, as raw RGBA. Returns the picture's size.
+
+    `thicken` grows the lines by that many pixels before tracing. One grown contour traces more cleanly
+    than an outline drawn around thin lines.
+    """
     with Image.open(picture) as opened:
         rgba = np.asarray(opened.convert("RGBA")).astype(np.int32)
     luminance = 0.299 * rgba[..., 0] + 0.587 * rgba[..., 1] + 0.114 * rgba[..., 2]
     lines = (rgba[..., 3] > 200) & (luminance < threshold)
+    mask = Image.fromarray((lines * 255).astype(np.uint8), "L")
+    for _ in range(thicken):
+        mask = mask.filter(ImageFilter.MaxFilter(3))
+    lines = np.asarray(mask) > 127
     canvas = np.full(rgba.shape, 255, dtype=np.uint8)
     canvas[lines] = (0, 0, 0, 255)
     canvas.tofile(out)
@@ -47,7 +55,7 @@ def _transform(d: str, scale: float, dx: float, dy: float) -> str:
 
 def trace_to_changes(picture: Path, threshold: int = 30, layer: str = "lines",
                      colour: str = "#000000", scale: float = 1.0,
-                     offset: tuple = (0.0, 0.0)) -> tuple[dict, dict]:
+                     offset: tuple = (0.0, 0.0), thicken: int = 0) -> tuple[dict, dict]:
     """Return (changes, info). `changes` adds a layer and path ops for the dark lines; `info` gives sizes."""
     node = shutil.which("node")
     if node is None:
@@ -56,10 +64,12 @@ def trace_to_changes(picture: Path, threshold: int = 30, layer: str = "lines",
         raise PaintError("threshold must be a whole number from 0 to 255")
     if scale <= 0:
         raise PaintError("scale must be above 0")
+    if not 0 <= thicken <= 5:
+        raise PaintError("thicken must be a whole number from 0 to 5 pixels")
     with tempfile.TemporaryDirectory() as work:
         raw = Path(work) / "lines.raw"
         svg = Path(work) / "lines.svg"
-        width, height = _line_image(picture, threshold, raw)
+        width, height = _line_image(picture, threshold, thicken, raw)
         result = subprocess.run(
             [node, str(VENDOR / "trace_svg.js"), str(raw), str(width), str(height), str(svg)],
             capture_output=True, text=True, timeout=300,
