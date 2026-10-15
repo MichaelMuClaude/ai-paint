@@ -1,6 +1,6 @@
 ---
 name: ai-paint
-description: Draw or edit a picture from a JSON document of explicit operations (strokes, lines, rectangles, ellipses, polygons, text, and flood fills, on layers). Use when the user asks to draw, sketch, paint, colour in, or mock up a picture from scratch. Every change is a separate operation with an id, so an agent can add, check, and correct one piece at a time. The input document is never overwritten.
+description: Draw or edit a picture from a JSON document of explicit operations (strokes, lines, rectangles, ellipses, polygons, text, pasted pictures, erasing, and flood fills, on layers). Use when the user asks to draw, sketch, paint, colour in, or mock up a picture from scratch. Every change is a separate operation with an id, so an agent can add, check, and correct one piece at a time. The input document is never overwritten.
 ---
 
 # ai-paint
@@ -33,7 +33,8 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 
 ## Limits
 
-- No image placement or erase operations yet.
-- The built-in font is Latin only. For other scripts, pass `font` with an absolute path to a `.ttf` or `.otf` file.
+- The built-in font is Latin only. For other scripts, pass `font` with a path to a `.ttf` or `.otf` file. Relative paths are read from the document's folder.
+- To fit a line of text in a space, run `ai-paint measure --text "..." --size 40` first.
+- Use `place` to paste a picture (PNG, JPEG, or WebP) and `erase` to cut a hole in a layer.
 - Shapes and strokes are anti-aliased. A point `(x, y)` is a pixel corner, and `box` `[x, y, w, h]` covers exactly `w` by `h` pixels.
 - Canvas up to 10,000 pixels on each side and 25 million pixels in total.

@@ -91,7 +91,7 @@ def test_ops_lists_every_operation_as_json():
     result = run("ops")
     assert result.returncode == 0
     names = [entry["op"] for entry in json.loads(result.stdout)]
-    assert names == ["stroke", "line", "rect", "ellipse", "polygon", "fill", "text"]
+    assert names == ["stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place"]
 
 
 def test_missing_file_is_a_clean_error(tmp_path):
@@ -140,3 +140,20 @@ def test_apply_can_update_and_remove_from_the_command_line(tmp_path):
     third = tmp_path / "third.json"
     run("apply", str(second), "--change", '{"remove":["box"]}', "-o", str(third))
     assert json.loads(third.read_text())["ops"] == []
+
+
+def test_measure_reports_text_size_and_grows_with_more_lines():
+    one = json.loads(run("measure", "--text", "Hello", "--size", "24").stdout)
+    two = json.loads(run("measure", "--text", "Hello\nHello", "--size", "24").stdout)
+    assert one["width"] > 0 and one["height"] > 0
+    assert two["height"] > one["height"] * 1.5
+    assert two["width"] == one["width"]
+
+
+def test_measure_rejects_bad_input():
+    result = run("measure", "--text", "Hi", "--size", "2")
+    assert result.returncode == 1
+    assert "size must be" in result.stderr
+    result = run("measure", "--text", "Hi", "--size", "20", "--font", "missing.ttf")
+    assert result.returncode == 1
+    assert "font must be" in result.stderr

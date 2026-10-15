@@ -5,20 +5,23 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import ImageColor
+from PIL import Image, ImageColor
 
 from ai_paint.errors import PaintError
 
 COORD_LIMIT = 100_000
 MAX_SIZE = 10_000
 MAX_TEXT = 500
+MAX_IMAGE_PIXELS = 25_000_000
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
+FONT_SUFFIXES = (".ttf", ".otf")
+IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
 
 
 @dataclass(frozen=True)
 class Param:
     name: str
-    kind: str  # int, float, bool, colour, point, points, box, choice, text, path
+    kind: str  # int, float, bool, colour, point, points, box, choice, text, font, image
     summary: str
     required: bool = True
     default: object = None
@@ -71,8 +74,43 @@ def _point(param: Param, value, size: tuple[int, int]) -> list:
     return [x, y]
 
 
-def coerce(param: Param, value, size: tuple[int, int]):
-    """Check one value against its parameter and return the normalised form."""
+def _resolve(value: str, base: Path) -> Path:
+    """A relative path is read from the document's folder, so a document still works when moved with its files."""
+    path = Path(value).expanduser()
+    return path if path.is_absolute() else base / path
+
+
+def _font(param: Param, value, base: Path) -> str:
+    if not isinstance(value, str) or not value.lower().endswith(FONT_SUFFIXES):
+        raise PaintError(f"{param.name} must be a .ttf or .otf font file")
+    path = _resolve(value, base)
+    if not path.is_file():
+        raise PaintError(f"{param.name} file does not exist: {path}")
+    return str(path)
+
+
+def _image(param: Param, value, base: Path) -> str:
+    if not isinstance(value, str) or not value.lower().endswith(IMAGE_SUFFIXES):
+        raise PaintError(f"{param.name} must be a picture file ending in {', '.join(IMAGE_SUFFIXES)}")
+    path = _resolve(value, base)
+    if not path.is_file():
+        raise PaintError(f"{param.name} file does not exist: {path}")
+    try:
+        with Image.open(path) as image:
+            width, height = image.size
+    except OSError as exc:
+        raise PaintError(f"{param.name} is not a readable picture: {path}") from exc
+    if width * height > MAX_IMAGE_PIXELS:
+        raise PaintError(f"{param.name} is {width}x{height}; the limit is {MAX_IMAGE_PIXELS} pixels")
+    return str(path)
+
+
+def coerce(param: Param, value, size: tuple[int, int], base: Path | None = None):
+    """Check one value against its parameter and return the normalised form.
+
+    `base` is the folder that relative file paths are read from. It defaults to the current folder.
+    """
+    base = Path.cwd() if base is None else base
     kind = param.kind
     if kind == "int":
         if not _is_number(value) or float(value) != int(value):
@@ -123,10 +161,8 @@ def coerce(param: Param, value, size: tuple[int, int]):
         if len(value) > MAX_TEXT:
             raise PaintError(f"{param.name} must be at most {MAX_TEXT} characters")
         return value
-    if kind == "path":
-        if not isinstance(value, str) or not value.lower().endswith((".ttf", ".otf")):
-            raise PaintError(f"{param.name} must be a .ttf or .otf font file")
-        if not Path(value).is_file():
-            raise PaintError(f"{param.name} file does not exist: {value}")
-        return value
+    if kind == "font":
+        return _font(param, value, base)
+    if kind == "image":
+        return _image(param, value, base)
     raise AssertionError(f"unknown parameter kind {kind}")

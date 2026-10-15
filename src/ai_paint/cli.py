@@ -17,6 +17,11 @@ def _same_file(a: Path, b: Path) -> bool:
     return a.resolve() == b.resolve()
 
 
+def _folder(document_path) -> Path:
+    """Relative picture and font paths in a document are read from the document's own folder."""
+    return Path(document_path).resolve().parent
+
+
 def _new(args) -> int:
     background = None if args.background == "none" else args.background
     try:
@@ -33,7 +38,7 @@ def _info(args) -> int:
         doc = document.load(Path(args.document))
     except PaintError as exc:
         return _fail(str(exc))
-    problems = document.validate_document(doc)
+    problems = document.validate_document(doc, _folder(args.document))
     layers = doc.get("layers", []) if isinstance(doc.get("layers"), list) else []
     operations = doc.get("ops", []) if isinstance(doc.get("ops"), list) else []
     summary = {
@@ -90,6 +95,28 @@ def _list(args) -> int:
     return 0
 
 
+def _measure(args) -> int:
+    from ai_paint.params import MAX_TEXT
+    from ai_paint.raster import text_size
+
+    text = args.text.replace("\\n", "\n")  # a typed \n on the command line means a new line
+    if not text.strip() or len(text) > MAX_TEXT:
+        return _fail(f"text must be between 1 and {MAX_TEXT} characters")
+    if not 4 <= args.size <= 500:
+        return _fail("size must be a whole number from 4 to 500")
+    font = None
+    if args.font:
+        font = str(Path(args.font).expanduser().resolve())
+        if not font.lower().endswith((".ttf", ".otf")) or not Path(font).is_file():
+            return _fail(f"font must be an existing .ttf or .otf file: {args.font}")
+    try:
+        width, height = text_size(text, args.size, font)
+    except PaintError as exc:
+        return _fail(str(exc))
+    print(json.dumps({"width": width, "height": height, "size": args.size}, indent=2))
+    return 0
+
+
 def _ops(args) -> int:
     catalogue = []
     for operation in ops.OPERATIONS.values():
@@ -117,7 +144,7 @@ def _validate(args) -> int:
         doc = document.load(Path(args.document))
     except PaintError as exc:
         return _fail(str(exc))
-    problems = document.validate_document(doc)
+    problems = document.validate_document(doc, _folder(args.document))
     if problems:
         for problem in problems:
             print(f"invalid: {problem}", file=sys.stderr)
@@ -139,7 +166,7 @@ def _apply(args) -> int:
             except json.JSONDecodeError as exc:
                 raise PaintError(f"--change is not valid JSON: {exc}") from exc
         original = document.load(source)
-        result = document.apply_changes(original, changes)
+        result = document.apply_changes(original, changes, _folder(source))
         document.save(result, output, force=args.force)
     except PaintError as exc:
         return _fail(str(exc))
@@ -161,7 +188,7 @@ def _render(args) -> int:
     view = {}
     try:
         doc = document.load(source)
-        image = document.render(doc)
+        image = document.render(doc, _folder(source))
         box = parse_box(args.crop) if args.crop else None
         if box is not None or args.zoom != 1:
             image = crop_and_zoom(image, box, args.zoom)
@@ -209,6 +236,12 @@ def main() -> None:
     listing.add_argument("--layer", help="Only show ops on this layer id")
     listing.add_argument("--text", action="store_true", help="Print one line per op instead of JSON")
     listing.set_defaults(func=_list)
+
+    measure = sub.add_parser("measure", help="Report how many pixels a line of text takes at a font size")
+    measure.add_argument("--text", required=True, help="The text; use \\n for a new line")
+    measure.add_argument("--size", type=int, required=True, help="Font size in pixels")
+    measure.add_argument("--font", help="Optional .ttf or .otf font file")
+    measure.set_defaults(func=_measure)
 
     catalogue = sub.add_parser("ops", help="List every operation and its parameters as JSON")
     catalogue.set_defaults(func=_ops)

@@ -10,7 +10,7 @@ from PIL import Image
 
 from ai_paint import raster
 from ai_paint.errors import PaintError
-from ai_paint.params import ID_PATTERN, Param, coerce
+from ai_paint.params import ID_PATTERN, MAX_SIZE, Param, coerce
 
 MAX_POINTS = 5_000
 MAX_WIDTH = 500
@@ -169,7 +169,7 @@ _register(
               required=False, default="top", choices=("top", "middle", "bottom")),
         Param("size", "int", "Font size in pixels", minimum=4, maximum=500),
         Param("colour", "colour", "Text colour"),
-        Param("font", "path", "Optional .ttf or .otf font file, as an absolute path. "
+        Param("font", "font", "Optional .ttf or .otf font file, relative to the document's folder or absolute. "
               "The built-in font is Latin only; use a font file for other scripts.", required=False),
         OPACITY,
     ],
@@ -177,8 +177,57 @@ _register(
 )
 
 
-def normalise(raw, size: tuple[int, int]) -> tuple[str, dict]:
-    """Check one operation dict and return (name, values). Raises PaintError with a clear message."""
+def _draw_erase(layer, v, size):
+    raster.erase_shape(layer, v["shape"], v["box"], v["opacity"])
+
+
+_register(
+    "erase",
+    "Make a rectangle or ellipse transparent on this layer. Other layers below are not affected.",
+    [
+        Param("shape", "choice", "rect or ellipse", required=False, default="rect",
+              choices=("rect", "ellipse")),
+        Param("box", "box", "[x, y, width, height] of the area to erase"),
+        Param("opacity", "float", "How much to erase, 0 to 1; 1 removes it completely",
+              required=False, default=1.0, minimum=0, maximum=1),
+    ],
+    _draw_erase,
+)
+
+
+def _draw_place(layer, v, size):
+    with Image.open(v["image"]) as opened:
+        picture = opened.convert("RGBA")
+    width, height = v["width"], v["height"]
+    if width is not None or height is not None:
+        if width is None:
+            width = round(picture.width * height / picture.height)
+        if height is None:
+            height = round(picture.height * width / picture.width)
+        picture = picture.resize((max(1, width), max(1, height)), Image.LANCZOS)
+    raster.place_image(layer, picture, v["point"], v["opacity"])
+
+
+_register(
+    "place",
+    "Paste a picture file (PNG, JPEG, or WebP) with its top-left corner at a point. "
+    "Its own transparency is kept. Give width or height to resize; the other side keeps its proportion.",
+    [
+        Param("image", "image", "Picture file, relative to the document's folder or absolute"),
+        Param("point", "point", "Top-left corner [x, y] in pixels"),
+        Param("width", "int", "Width in pixels after resizing", required=False, minimum=1, maximum=MAX_SIZE),
+        Param("height", "int", "Height in pixels after resizing", required=False, minimum=1, maximum=MAX_SIZE),
+        OPACITY,
+    ],
+    _draw_place,
+)
+
+
+def normalise(raw, size: tuple[int, int], base=None) -> tuple[str, dict]:
+    """Check one operation dict and return (name, values). Raises PaintError with a clear message.
+
+    `base` is the folder that relative file paths are read from.
+    """
     if not isinstance(raw, dict):
         raise PaintError("each operation must be a JSON object")
     name = raw.get("op")
@@ -196,7 +245,7 @@ def normalise(raw, size: tuple[int, int]) -> tuple[str, dict]:
     values = {}
     for param in operation.params:
         if param.name in raw:
-            values[param.name] = coerce(param, raw[param.name], size)
+            values[param.name] = coerce(param, raw[param.name], size, base)
         elif param.required:
             raise PaintError(f"{name} needs {param.name}")
         else:

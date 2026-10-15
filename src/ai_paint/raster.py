@@ -163,28 +163,29 @@ def _box_shape(sampler: _Sampler, shape: str, corners: tuple, value: int) -> Non
         sampler.draw.ellipse(box, fill=value)
 
 
-def draw_shape(layer: Image.Image, shape: str, coords: list, colour: tuple, opacity: float,
-               filled: bool = True, width: float = 1) -> None:
-    """Paint a rect, ellipse, polygon, or polyline.
+def shape_coverage(size: tuple[int, int], shape: str, coords: list, filled: bool, width: float = 1):
+    """The anti-aliased coverage of a rect, ellipse, polygon, or polyline, as (region, mask).
 
     rect and ellipse take a box [x, y, width, height]. polygon and polyline take a list of points.
     An outline is centred on the edge, so it grows half its width on each side.
+    Returns None when the shape is entirely off the picture.
     """
     if shape in ("rect", "ellipse"):
         x, y, w, h = coords
         half = 0 if filled else width / 2
-        region = _region([[x - half, y - half], [x + w + half, y + h + half]], 2, layer.size)
+        region = _region([[x - half, y - half], [x + w + half, y + h + half]], 2, size)
         if region is None:
-            return
+            return None
         sampler = _Sampler(region)
         _box_shape(sampler, shape, (x - half, y - half, x + w + half, y + h + half), 255)
         if not filled and w > width and h > width:
             _box_shape(sampler, shape, (x + half, y + half, x + w - half, y + h - half), 0)
-    elif shape in ("polygon", "polyline"):
+        return region, sampler.finish()
+    if shape in ("polygon", "polyline"):
         pad = 2 if filled else width / 2 + 2
-        region = _region(coords, pad, layer.size)
+        region = _region(coords, pad, size)
         if region is None:
-            return
+            return None
         sampler = _Sampler(region)
         pts = sampler.points(coords)
         if shape == "polygon" and filled:
@@ -193,9 +194,44 @@ def draw_shape(layer: Image.Image, shape: str, coords: list, colour: tuple, opac
             sampler.draw.line(pts + pts[:1], fill=255, width=round(width * AA), joint="curve")
         else:
             sampler.draw.line(pts, fill=255, width=round(width * AA), joint="curve")
-    else:
-        raise AssertionError(f"unknown shape {shape}")
-    paint(layer, sampler.finish(), region, colour, opacity)
+        return region, sampler.finish()
+    raise AssertionError(f"unknown shape {shape}")
+
+
+def draw_shape(layer: Image.Image, shape: str, coords: list, colour: tuple, opacity: float,
+               filled: bool = True, width: float = 1) -> None:
+    coverage = shape_coverage(layer.size, shape, coords, filled, width)
+    if coverage is not None:
+        region, mask = coverage
+        paint(layer, mask, region, colour, opacity)
+
+
+def erase_shape(layer: Image.Image, shape: str, coords: list, opacity: float) -> None:
+    """Make the filled shape transparent on this layer. `opacity` 1 removes it completely."""
+    coverage = shape_coverage(layer.size, shape, coords, filled=True)
+    if coverage is None:
+        return
+    region, mask = coverage
+    keep = mask.point(lambda v: 255 - round(v * opacity))
+    piece = layer.crop(region)
+    piece.putalpha(ImageChops.multiply(piece.getchannel("A"), keep))
+    layer.paste(piece, region[:2])
+
+
+def place_image(layer: Image.Image, image: Image.Image, xy: list, opacity: float) -> None:
+    """Composite a picture onto the layer with its top-left corner at `xy`, using its own transparency."""
+    x, y = round(xy[0]), round(xy[1])
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+    if opacity < 1:
+        image = image.copy()
+        image.putalpha(image.getchannel("A").point(lambda v: round(v * opacity)))
+    region = _region([[x, y], [x + image.width, y + image.height]], 0, layer.size)
+    if region is None:
+        return
+    piece = image.crop((region[0] - x, region[1] - y, region[2] - x, region[3] - y))
+    existing = layer.crop(region)
+    layer.paste(Image.alpha_composite(existing, piece), region[:2])
 
 
 def _font(size: int, font_path: str | None):
@@ -205,6 +241,14 @@ def _font(size: int, font_path: str | None):
         return ImageFont.truetype(font_path, size)
     except OSError as exc:
         raise PaintError(f"could not load font {font_path}: {exc}") from exc
+
+
+def text_size(text: str, size: int, font_path: str | None) -> tuple[int, int]:
+    """The width and height in pixels of the text's ink box, for one font size."""
+    font = _font(size, font_path)
+    measure = ImageDraw.Draw(Image.new("L", (1, 1)))
+    left, top, right, bottom = measure.multiline_textbbox((0, 0), text, font=font)
+    return right - left, bottom - top
 
 
 def draw_text(layer: Image.Image, text: str, xy: list, size: int, font_path: str | None,

@@ -217,3 +217,18 @@ def test_op_errors_name_the_op_id():
     doc["ops"] = [{"id": "disc", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5]}]
     problems = document.validate_document(doc)
     assert problems == ["ops[0] (id disc): give a fill colour, an outline colour, or both"]
+
+
+def test_canvas_background_can_be_changed():
+    doc = document.new_document(20, 20, "#ffffff")
+    result = document.apply_changes(doc, {"canvas": {"background": "#1d3557"}})
+    assert result["canvas"] == {"width": 20, "height": 20, "background": "#1d3557"}
+    assert document.render(result).getpixel((1, 1)) == (0x1D, 0x35, 0x57, 255)
+
+
+def test_canvas_changes_are_checked():
+    doc = document.new_document(20, 20, "#ffffff")
+    with pytest.raises(PaintError, match="unknown field"):
+        document.apply_changes(doc, {"canvas": {"colour": "red"}})
+    with pytest.raises(PaintError, match="canvas width"):
+        document.apply_changes(doc, {"canvas": {"width": 0}})

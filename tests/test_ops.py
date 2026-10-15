@@ -17,7 +17,7 @@ def _render(*op_list, width=100, height=100, background="#ffffff"):
 
 
 def test_registry_has_the_drawing_operations():
-    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text"}
+    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place"}
     for operation in ops.OPERATIONS.values():
         assert operation.summary
         assert operation.params
@@ -264,3 +264,124 @@ def test_text_right_aligned_ends_at_the_point():
     inked_x = [x for x in range(100) for y in range(40) if img.getpixel((x, y))[0] < 128]
     assert max(inked_x) <= 60
     assert max(inked_x) >= 55
+
+
+def _picture(path, size=(10, 10), colour=(0, 0, 255, 255)):
+    Image.new("RGBA", size, colour).save(path)
+    return path
+
+
+def test_erase_makes_a_rect_transparent_on_its_own_layer_only(tmp_path):
+    doc = document.new_document(20, 20, "#ffffff")
+    doc = document.apply_changes(doc, {
+        "layers": [{"id": "top"}],
+        "ops": [
+            {"op": "rect", "layer": "l1", "box": [0, 0, 20, 20], "fill": "#ff0000"},
+            {"op": "erase", "layer": "top", "box": [5, 5, 10, 10]},
+            {"op": "erase", "layer": "l1", "box": [0, 0, 4, 4]},
+        ],
+    })
+    img = document.render(doc)
+    assert img.getpixel((0, 0)) == (255, 255, 255, 255)  # erased on l1, the white background shows
+    assert img.getpixel((10, 10)) == (255, 0, 0, 255)  # top layer has nothing to erase
+    assert img.getpixel((18, 18)) == (255, 0, 0, 255)
+
+
+def test_partial_erase_reduces_alpha_by_the_given_amount():
+    doc = document.new_document(10, 10, None)
+    doc = document.apply_changes(doc, {"ops": [
+        {"op": "rect", "layer": "l1", "box": [0, 0, 10, 10], "fill": "#000000"},
+        {"op": "erase", "layer": "l1", "box": [0, 0, 10, 10], "opacity": 0.5},
+    ]})
+    assert abs(document.render(doc).getpixel((5, 5))[3] - 128) <= 1  # half of 255, rounded
+
+
+def test_erase_needs_a_box():
+    with pytest.raises(PaintError, match="erase needs box"):
+        ops.normalise({"op": "erase", "layer": "l1"}, (10, 10))
+
+
+def test_place_copies_pixels_at_the_point(tmp_path):
+    picture = _picture(tmp_path / "blue.png", (6, 4))
+    doc = document.new_document(20, 20, "#ffffff")
+    doc = document.apply_changes(doc, {"ops": [
+        {"op": "place", "layer": "l1", "image": str(picture), "point": [3, 5]},
+    ]}, tmp_path)
+    img = document.render(doc, tmp_path)
+    assert img.getpixel((3, 5)) == (0, 0, 255, 255)
+    assert img.getpixel((8, 8)) == (0, 0, 255, 255)
+    assert img.getpixel((9, 5)) == (255, 255, 255, 255)
+    assert img.getpixel((2, 5)) == (255, 255, 255, 255)
+
+
+def test_place_keeps_the_pictures_own_transparency(tmp_path):
+    picture = tmp_path / "half.png"
+    Image.new("RGBA", (4, 4), (0, 0, 0, 0)).save(picture)
+    doc = document.new_document(8, 8, "#ffffff")
+    doc = document.apply_changes(doc, {"ops": [{"op": "place", "layer": "l1", "image": "half.png", "point": [0, 0]}]}, tmp_path)
+    assert document.render(doc, tmp_path).getpixel((1, 1)) == (255, 255, 255, 255)
+
+
+def test_place_can_resize_keeping_proportion(tmp_path):
+    picture = _picture(tmp_path / "wide.png", (40, 20))
+    doc = document.new_document(60, 60, None)
+    doc = document.apply_changes(doc, {"ops": [
+        {"op": "place", "layer": "l1", "image": "wide.png", "point": [0, 0], "width": 20},
+    ]}, tmp_path)
+    img = document.render(doc, tmp_path)
+    assert img.getpixel((19, 9))[3] == 255  # 20 wide, 10 tall
+    assert img.getpixel((5, 12))[3] == 0  # below the 10 px height
+
+
+def test_place_opacity_scales_the_picture(tmp_path):
+    picture = _picture(tmp_path / "red.png", (4, 4), (255, 0, 0, 255))
+    doc = document.new_document(4, 4, "#ffffff")
+    doc = document.apply_changes(doc, {"ops": [
+        {"op": "place", "layer": "l1", "image": str(picture), "point": [0, 0], "opacity": 0.5},
+    ]}, tmp_path)
+    red, green, blue, _ = document.render(doc, tmp_path).getpixel((1, 1))
+    assert red == 255 and abs(green - 128) <= 1 and abs(blue - 128) <= 1  # half strength red over white
+
+
+def test_place_outside_the_canvas_is_clipped(tmp_path):
+    picture = _picture(tmp_path / "blue.png", (10, 10))
+    doc = document.new_document(10, 10, None)
+    doc = document.apply_changes(doc, {"ops": [{"op": "place", "layer": "l1", "image": str(picture), "point": [-5, 5]}]}, tmp_path)
+    img = document.render(doc, tmp_path)
+    assert img.getpixel((0, 6))[3] == 255
+    assert img.getpixel((9, 6))[3] == 0
+
+
+def test_place_reports_missing_and_unreadable_files(tmp_path):
+    with pytest.raises(PaintError, match="file does not exist"):
+        ops.normalise({"op": "place", "layer": "l1", "image": "nope.png", "point": [0, 0]}, (10, 10), tmp_path)
+    (tmp_path / "fake.png").write_text("not a picture")
+    with pytest.raises(PaintError, match="not a readable picture"):
+        ops.normalise({"op": "place", "layer": "l1", "image": "fake.png", "point": [0, 0]}, (10, 10), tmp_path)
+    with pytest.raises(PaintError, match="must be a picture file"):
+        ops.normalise({"op": "place", "layer": "l1", "image": "doc.pdf", "point": [0, 0]}, (10, 10), tmp_path)
+
+
+def test_relative_paths_follow_the_document_folder_not_the_current_folder(tmp_path, monkeypatch):
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    _picture(tmp_path / "logo.png")
+    monkeypatch.chdir(elsewhere)
+    doc = document.new_document(10, 10, None)
+    doc = document.apply_changes(doc, {"ops": [{"op": "place", "layer": "l1", "image": "logo.png", "point": [0, 0]}]}, tmp_path)
+    assert document.validate_document(doc, tmp_path) == []
+    assert document.render(doc, tmp_path).getpixel((5, 5)) == (0, 0, 255, 255)
+    assert document.validate_document(doc, elsewhere)  # from the wrong folder it cannot be found
+
+
+def test_place_accepts_jpeg_and_webp(tmp_path):
+    Image.new("RGB", (8, 8), (0, 255, 0)).save(tmp_path / "green.jpg")
+    Image.new("RGB", (8, 8), (255, 0, 0)).save(tmp_path / "red.webp", "WEBP", lossless=True)
+    doc = document.new_document(20, 10, "#ffffff")
+    doc = document.apply_changes(doc, {"ops": [
+        {"op": "place", "layer": "l1", "image": "green.jpg", "point": [0, 0]},
+        {"op": "place", "layer": "l1", "image": "red.webp", "point": [10, 0]},
+    ]}, tmp_path)
+    img = document.render(doc, tmp_path)
+    assert img.getpixel((4, 4))[1] > 200
+    assert img.getpixel((14, 4))[0] > 200

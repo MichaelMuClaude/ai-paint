@@ -15,7 +15,7 @@ MAX_PIXELS = 25_000_000
 BLEND_MODES = ("normal",)
 DOCUMENT_KEYS = {"schema", "canvas", "layers", "ops"}
 LAYER_KEYS = {"id", "name", "opacity", "visible", "blend"}
-CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers"}
+CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers", "canvas"}
 
 
 def _whole(value, label: str, low: int, high: int) -> int:
@@ -79,8 +79,11 @@ def _layer_problems(layers) -> tuple[list[str], set]:
     return problems, ids
 
 
-def validate_document(doc) -> list[str]:
-    """Return every problem found, as text. An empty list means the document can be rendered."""
+def validate_document(doc, base: Path | None = None) -> list[str]:
+    """Return every problem found, as text. An empty list means the document can be rendered.
+
+    `base` is the folder that relative file paths (fonts and pictures) are read from.
+    """
     if not isinstance(doc, dict):
         return ["document must be a JSON object"]
     problems = []
@@ -104,7 +107,7 @@ def validate_document(doc) -> list[str]:
         label = raw.get("id") if isinstance(raw, dict) else None
         prefix = f"ops[{index}]" + (f" (id {label})" if isinstance(label, str) else "") + ": "
         try:
-            ops.normalise(raw, size)
+            ops.normalise(raw, size, base)
         except PaintError as exc:
             problems.append(prefix + str(exc))
             continue
@@ -117,22 +120,22 @@ def validate_document(doc) -> list[str]:
     return problems
 
 
-def _raise_if_invalid(doc) -> None:
-    problems = validate_document(doc)
+def _raise_if_invalid(doc, base: Path | None = None) -> None:
+    problems = validate_document(doc, base)
     if problems:
         raise PaintError("; ".join(problems))
 
 
-def render(doc) -> Image.Image:
+def render(doc, base: Path | None = None) -> Image.Image:
     """Draw every visible layer, bottom to top, and return an RGBA image."""
-    _raise_if_invalid(doc)
+    _raise_if_invalid(doc, base)
     size = _canvas_size(doc["canvas"])
     background = doc["canvas"].get("background")
     result = Image.new("RGBA", size, (0, 0, 0, 0) if background is None else parse_colour(background))
 
     by_layer: dict[str, list] = {}
     for raw in doc.get("ops", []):
-        name, values = ops.normalise(raw, size)
+        name, values = ops.normalise(raw, size, base)
         by_layer.setdefault(raw["layer"], []).append((name, values))
 
     for layer in doc["layers"]:
@@ -171,7 +174,7 @@ def _op_index(operations: list, op_id: str, action: str) -> int:
     raise PaintError(f"{action}: there is no op with id {op_id!r}; run 'ai-paint list' to see the ids")
 
 
-def apply_changes(doc: dict, changes) -> dict:
+def apply_changes(doc: dict, changes, base: Path | None = None) -> dict:
     """Return a new document with the changes applied. The input document is not modified.
 
     `changes` may contain:
@@ -181,6 +184,7 @@ def apply_changes(doc: dict, changes) -> dict:
     - "remove": [op_id, ...] to delete existing ops
     - "update_layers": {layer_id: {field: value, ...}} to change fields of existing layers
     - "remove_layers": [layer_id, ...] to delete layers that have no ops left on them
+    - "canvas": {"background": "#ffffff"} to change canvas fields (width, height, or background)
     Items without an id get one. The result is validated before it is returned.
     """
     if not isinstance(changes, dict):
@@ -220,6 +224,14 @@ def apply_changes(doc: dict, changes) -> dict:
         if "id" in fields and fields["id"] != op_id:
             raise PaintError(f"update {op_id!r}: an op's id cannot be changed")
         operations[index] = {**operations[index], **fields}
+    if "canvas" in changes:
+        canvas_fields = changes["canvas"]
+        if not isinstance(canvas_fields, dict):
+            raise PaintError("'canvas' must be an object with width, height, or background")
+        unknown_canvas = sorted(set(canvas_fields) - {"width", "height", "background"})
+        if unknown_canvas:
+            raise PaintError(f"canvas has unknown field(s): {', '.join(unknown_canvas)}")
+        result["canvas"] = {**result.get("canvas", {}), **canvas_fields}
     layers = result.setdefault("layers", [])
     for layer_id, fields in layer_updates.items():
         index = _layer_index(layers, layer_id, "update_layers")
@@ -252,7 +264,7 @@ def apply_changes(doc: dict, changes) -> dict:
                 )
             op_ids.add(op["id"])
         operations.append(op)
-    _raise_if_invalid(result)
+    _raise_if_invalid(result, base)
     return result
 
 

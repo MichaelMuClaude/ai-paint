@@ -26,6 +26,22 @@ I used ai-paint as its end user, drawing three pictures: a three-step flowchart,
 - **Curves** need a list of many points. An `arc` op would be easier.
 - **Rotation** is not supported. I could rotate text by drawing it in a separate layer, but there is no way to do that yet.
 
-## Next step
+## Round 2 (after `place` and `erase`)
 
-`place` and `erase`, in that order. `place` is needed for real pictures, and `erase` can wait, because `update` and `remove` now cover most corrections.
+I made a poster with a pasted logo, a bitten hole in a band, and two-line text. The same test as round 1, run again.
+
+| # | What I tried | What happened | Decision |
+|---|---|---|---|
+| 6 | Paste a logo with a relative path, from another working folder | Not possible before. Paths were read from the current folder | Relative paths now follow the document's folder |
+| 7 | Erase a hole, with the background the same colour | The hole did not show. Erasing reveals the background, which matched it | Expected behaviour. Noted in the docs |
+| 8 | Fit a title in a space | Guessed from the render each time | Added `measure` (width and height of a line of text) |
+| 9 | Change the background colour after creating the document | Not possible | Added `canvas` to changes |
+| 10 | Type two lines in `measure` on the command line | A typed `\n` was read as two characters | `measure` reads `\n` as a new line |
+
+## Still missing
+
+- Reordering layers, and rotating or scaling existing ops. Documented as workarounds.
+
+## Round 3 decision
+
+The tool now covers the drawing tasks I tried. Changes are by id, and checking is by rendering and looking. The next thing to test is a larger, real-looking piece with many layers, to see whether the file gets hard to read.
