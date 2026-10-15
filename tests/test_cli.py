@@ -91,7 +91,7 @@ def test_ops_lists_every_operation_as_json():
     result = run("ops")
     assert result.returncode == 0
     names = [entry["op"] for entry in json.loads(result.stdout)]
-    assert names == ["stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path"]
+    assert names == ["stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path", "balloon"]
 
 
 def test_missing_file_is_a_clean_error(tmp_path):
@@ -157,3 +157,18 @@ def test_measure_rejects_bad_input():
     result = run("measure", "--text", "Hi", "--size", "20", "--font", "missing.ttf")
     assert result.returncode == 1
     assert "font must be" in result.stderr
+
+
+def test_manga_presets_create_pages_of_the_right_size(tmp_path):
+    doc = tmp_path / "page.json"
+    result = run("new", str(doc), "--preset", "manga-b5")
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["width"] == 2150
+    data = json.loads(doc.read_text())
+    assert (data["canvas"]["width"], data["canvas"]["height"]) == (2150, 3035)
+
+
+def test_new_needs_a_size_or_a_preset(tmp_path):
+    result = run("new", str(tmp_path / "x.json"))
+    assert result.returncode == 1
+    assert "--preset" in result.stderr

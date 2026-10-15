@@ -3,6 +3,7 @@
 The `ops` command is generated from this list, so it always matches the code.
 """
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -245,6 +246,58 @@ _register(
     ],
     _draw_path,
     _need_fill_or_outline,
+)
+
+
+def _draw_balloon(layer, v, size):
+    """A speech balloon: an ellipse around centred text, with an optional tail pointing at `tail`."""
+    text_w, text_h = raster.text_size(v["text"], v["size"], v["font"])
+    pad = v["size"] * 0.6
+    cx, cy = v["centre"]
+    a = text_w / 2 * 1.3 + pad  # semi-axes that hold the text with room to spare
+    b = text_h / 2 * 1.3 + pad
+    points = []
+    gap = 0.0
+    tail_angle = None
+    if v["tail"] is not None:
+        tail_angle = math.atan2(v["tail"][1] - cy, v["tail"][0] - cx)
+        gap = math.radians(18)
+    steps = 96
+    start = (tail_angle + gap) if tail_angle is not None else 0.0
+    for i in range(steps + 1):
+        theta = start + (2 * math.pi - 2 * gap if tail_angle is not None else 2 * math.pi) * i / steps
+        points.append([cx + a * math.cos(theta), cy + b * math.sin(theta)])
+    if tail_angle is not None:
+        points.append(list(v["tail"]))  # the tail point
+    fill = v["fill"] if v["fill"] is not None else (255, 255, 255, 255)
+    raster.draw_shape(layer, "polygon", points, fill, v["opacity"], filled=True)
+    outline = v["outline"] if v["outline"] is not None else (0, 0, 0, 255)
+    raster.draw_shape(layer, "polygon", points, outline, v["opacity"], filled=False, width=v["width"])
+    text_colour = v["colour"] if v["colour"] is not None else (0, 0, 0, 255)
+    raster.draw_text(layer, v["text"], [cx, cy], v["size"], v["font"], text_colour, v["opacity"],
+                     align="center", valign="middle")
+
+
+_register(
+    "balloon",
+    "Speech balloon: an ellipse around centred text, with a tail that points at a character. "
+    "Use \\n inside the text for a new line.",
+    [
+        Param("text", "text", "What the balloon says"),
+        Param("centre", "point", "Centre of the balloon [x, y] in pixels"),
+        Param("size", "int", "Font size in pixels", minimum=4, maximum=500),
+        Param("tail", "point", "Point [x, y] the tail reaches. Leave out for a balloon without a tail.",
+              required=False),
+        Param("fill", "paint", "Balloon fill, default white", required=False),
+        Param("outline", "colour", "Outline colour, default black", required=False),
+        Param("width", "float", "Outline width in pixels", required=False, default=2.5,
+              minimum=0.5, maximum=MAX_WIDTH),
+        Param("colour", "colour", "Text colour, default black", required=False),
+        Param("font", "font", "Optional .ttf, .otf or .ttc font file. Noto Sans CJK covers Chinese and Japanese.",
+              required=False),
+        OPACITY,
+    ],
+    _draw_balloon,
 )
 
 

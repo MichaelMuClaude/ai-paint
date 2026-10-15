@@ -22,14 +22,29 @@ def _folder(document_path) -> Path:
     return Path(document_path).resolve().parent
 
 
+# Manga page sizes at 300 dpi. B5 is 182 x 257 mm and B6 (a tankobon volume) is 128 x 182 mm.
+PRESETS = {
+    "manga-b5": (2150, 3035, "B5 manga page, 182 x 257 mm at 300 dpi"),
+    "manga-b6": (1512, 2150, "B6 tankobon page, 128 x 182 mm at 300 dpi"),
+}
+
+
 def _new(args) -> int:
     background = None if args.background == "none" else args.background
+    width, height = args.width, args.height
+    if args.preset:
+        if width is not None or height is not None:
+            return _fail("use either --preset or --width and --height, not both")
+        width, height, _ = PRESETS[args.preset]
+    if width is None or height is None:
+        return _fail("give --width and --height, or a --preset")
     try:
-        doc = document.new_document(args.width, args.height, background, args.layer)
+        doc = document.new_document(width, height, background, args.layer)
         document.save(doc, Path(args.output), force=args.force)
     except PaintError as exc:
         return _fail(str(exc))
-    print(json.dumps({"file": Path(args.output).name, "width": args.width, "height": args.height}, indent=2))
+    print(json.dumps({"file": Path(args.output).name, "width": width, "height": height,
+                      "preset": args.preset}, indent=2))
     return 0
 
 
@@ -220,8 +235,10 @@ def main() -> None:
 
     new = sub.add_parser("new", help="Create an empty document with one layer")
     new.add_argument("output", help="New document file (.json)")
-    new.add_argument("--width", type=int, required=True)
-    new.add_argument("--height", type=int, required=True)
+    new.add_argument("--width", type=int)
+    new.add_argument("--height", type=int)
+    new.add_argument("--preset", choices=tuple(PRESETS),
+                     help="A manga page size: " + "; ".join(f"{k} = {v[2]}" for k, v in PRESETS.items()))
     new.add_argument("--background", default="#ffffff", help="Colour, or 'none' for a transparent canvas")
     new.add_argument("--layer", default="base", help="Name of the first layer")
     new.add_argument("--force", action="store_true", help="Replace the file if it exists")

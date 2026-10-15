@@ -11,13 +11,14 @@ from PIL import Image, ImageColor
 from ai_paint import svgpath
 from ai_paint.errors import PaintError
 from ai_paint.gradient import Gradient
+from ai_paint.screentone import ScreenTone
 
 COORD_LIMIT = 100_000
 MAX_SIZE = 10_000
 MAX_TEXT = 500
 MAX_IMAGE_PIXELS = 25_000_000
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
-FONT_SUFFIXES = (".ttf", ".otf")
+FONT_SUFFIXES = (".ttf", ".otf", ".ttc")
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
 
 
@@ -69,7 +70,9 @@ def parse_paint(name: str, value):
     if isinstance(value, str):
         return parse_colour(value)
     if not isinstance(value, dict):
-        raise PaintError(f"{name} must be a colour, or a gradient object with type, stops, and geometry")
+        raise PaintError(f"{name} must be a colour, a gradient object, or a screentone object")
+    if value.get("type") == "screen":
+        return _screentone(name, value)
     kind = value.get("type")
     if kind == "linear":
         allowed = {"type", "from", "to", "stops"}
@@ -92,6 +95,24 @@ def parse_paint(name: str, value):
     if not _is_number(radius) or radius <= 0:
         raise PaintError(f"{name} radial gradient needs a positive radius")
     return Gradient("radial", stops, centre=centre, radius=float(radius))
+
+
+def _screentone(name: str, value: dict) -> ScreenTone:
+    """{"type": "screen", "density": 0.3, "cell": 8, "angle": 45, "colour": "#000000"}"""
+    unknown = sorted(set(value) - {"type", "density", "cell", "angle", "colour"})
+    if unknown:
+        raise PaintError(f"{name} screentone has unknown field(s): {', '.join(unknown)}")
+    density = value.get("density")
+    if not _is_number(density) or not 0 < density <= 1:
+        raise PaintError(f"{name} screentone density must be a number above 0 and up to 1")
+    cell = value.get("cell", 8)
+    if not _is_number(cell) or not 2 <= cell <= 200:
+        raise PaintError(f"{name} screentone cell must be a number from 2 to 200 pixels")
+    angle = value.get("angle", 45)
+    if not _is_number(angle):
+        raise PaintError(f"{name} screentone angle must be a number of degrees")
+    colour = parse_colour(value.get("colour", "#000000"))
+    return ScreenTone(float(density), float(cell), float(angle), colour)
 
 
 def _is_number(value) -> bool:
@@ -130,7 +151,7 @@ def _resolve(value: str, base: Path) -> Path:
 
 def _font(param: Param, value, base: Path) -> str:
     if not isinstance(value, str) or not value.lower().endswith(FONT_SUFFIXES):
-        raise PaintError(f"{param.name} must be a .ttf or .otf font file")
+        raise PaintError(f"{param.name} must be a .ttf, .otf or .ttc font file")
     path = _resolve(value, base)
     if not path.is_file():
         raise PaintError(f"{param.name} file does not exist: {path}")

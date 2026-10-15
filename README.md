@@ -44,6 +44,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 | `text` | Text at a point, in a `size` in pixels. `align` (left, center, right) and `valign` (top, middle, bottom) say which part of the text sits on the point. Use `\n` for a new line. The built-in font covers Latin letters; pass `font` (an absolute path to a `.ttf` or `.otf` file) for other scripts. |
 | `place` | Paste a PNG, JPEG, or WebP picture with its top-left corner at a point. Its own transparency is kept. `width` or `height` resizes it, keeping its proportions. |
 | `erase` | Make a `rect` or `ellipse` box transparent on its own layer. `opacity` 1 removes it fully. |
+| `balloon` | A speech balloon: an ellipse around centred text, with a `tail` that points at a character. Text uses `size`, and `font` takes a CJK font for Chinese or Japanese. |
 | `path` | A shape or line from SVG path data: `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A` (arc), `Z`, absolute or relative. Arc flags are separate `0` or `1` numbers. Curves are smooth. Use it for faces, limbs, clothing, and anything organic. `fill` and `outline` both work. |
 | `fill` | Flood fill from a seed point on its layer. `tolerance` (0 to 255) is the total difference allowed across red, green, blue and alpha, so `6` lets through a pixel that is 2 darker in each of R, G and B. |
 
@@ -60,6 +61,8 @@ A layer can also get a cartoon outline with `"outline": {"colour": "#2b1a10", "w
 
 Outline `width` can be a decimal, for example `2.5`, down to `0.5`.
 
+A fill can also be a screentone, the dot pattern manga artists use for grey: `{"type": "screen", "density": 0.3, "cell": 10, "angle": 45}`. `density` is the grey share, from above 0 to 1. `cell` is the dot spacing in pixels.
+
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). Relative picture and font paths are read from the document's own folder, so a document and its pictures can be moved together. The `fill` op sets pixels to the colour and does not blend.
 
 - Shapes and strokes are anti-aliased: edges are drawn at three times the resolution and averaged down. Coordinates are continuous, so the point `(x, y)` is a pixel corner, and a box `[x, y, 20, 20]` covers exactly 20 by 20 pixels. Outlines are centred on the box edge.
@@ -68,7 +71,7 @@ Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (
 
 | Command | Purpose |
 |---|---|
-| `new FILE --width W --height H` | Create an empty document with one layer |
+| `new FILE --width W --height H` | Create an empty document with one layer. Or use `--preset manga-b5` (182 × 257 mm at 300 dpi) or `--preset manga-b6` (128 × 182 mm). |
 | `info FILE` | Show canvas, layers, op counts, and any problems, as JSON |
 | `ops` | List operations and their parameters |
 | `validate FILE` | Check a document without drawing |

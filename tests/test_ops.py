@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from PIL import Image
 
 from ai_paint import document, ops, raster
@@ -17,7 +18,7 @@ def _render(*op_list, width=100, height=100, background="#ffffff"):
 
 
 def test_registry_has_the_drawing_operations():
-    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path"}
+    assert set(ops.OPERATIONS) == {"stroke", "line", "rect", "ellipse", "polygon", "fill", "text", "erase", "place", "path", "balloon"}
     for operation in ops.OPERATIONS.values():
         assert operation.summary
         assert operation.params
@@ -234,7 +235,7 @@ def test_text_font_file_must_exist_and_be_a_font():
     with pytest.raises(PaintError, match="file does not exist"):
         ops.normalise({"op": "text", "layer": "l1", "text": "x", "point": [0, 0], "size": 10,
                        "colour": "red", "font": "/nonexistent/font.ttf"}, (100, 100))
-    with pytest.raises(PaintError, match=r"must be a \.ttf or \.otf"):
+    with pytest.raises(PaintError, match=r"must be a \.ttf, \.otf or \.ttc font file"):
         ops.normalise({"op": "text", "layer": "l1", "text": "x", "point": [0, 0], "size": 10,
                        "colour": "red", "font": "photo.png"}, (100, 100))
 
@@ -410,3 +411,26 @@ def test_untapered_stroke_keeps_its_width_to_the_ends():
     img = _render({"op": "stroke", "layer": "l1", "points": [[10, 50], [90, 50]], "size": 10,
                    "colour": "#000000"})
     assert img.getpixel((12, 50)) == BLACK
+
+
+def test_balloon_has_a_white_fill_a_black_outline_and_centred_text(tmp_path):
+    font = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+    if not Path(font).exists():
+        pytest.skip("Noto CJK font not installed")
+    img = _render({"op": "balloon", "layer": "l1", "text": "你好", "centre": [50, 50], "size": 16,
+                   "font": font}, width=100, height=100)
+    assert img.getpixel((50, 40)) == (255, 255, 255, 255) or img.getpixel((50, 40))[0] < 255
+    dark = [(x, y) for x in range(100) for y in range(100) if img.getpixel((x, y))[0] < 100]
+    assert dark
+    xs = [x for x, _ in dark]
+    ys = [y for _, y in dark]
+    assert abs((min(xs) + max(xs)) / 2 - 50) < 15
+    assert abs((min(ys) + max(ys)) / 2 - 50) < 15
+
+
+def test_balloon_tail_reaches_towards_its_target():
+    img = _render({"op": "balloon", "layer": "l1", "text": "Hi", "centre": [30, 30], "size": 10,
+                   "tail": [90, 90]}, width=100, height=100)
+    assert img.getpixel((70, 70))[0] < 100  # part of the tail's outline lies on the way
+    near_tip = [img.getpixel((x, y))[0] for x in range(86, 95) for y in range(86, 95)]
+    assert min(near_tip) < 200  # the outline reaches the tip, allowing for anti-aliasing

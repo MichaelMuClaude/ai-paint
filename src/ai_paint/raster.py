@@ -14,7 +14,6 @@ import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 from ai_paint.errors import PaintError
-from ai_paint.gradient import Gradient
 
 AA = 3  # samples per pixel along each axis, so each pixel is averaged from AA x AA samples
 MAX_DABS = 200_000
@@ -125,7 +124,7 @@ class _Sampler:
 
 def paint(layer: Image.Image, mask: Image.Image, region: tuple, colour, opacity: float) -> None:
     """Blend a colour or gradient onto `layer` through the mask, scaled by its alpha and `opacity`."""
-    if isinstance(colour, Gradient):
+    if hasattr(colour, "render"):  # a gradient or a screentone
         colours = Image.fromarray(colour.render(region), "RGBA")
     else:
         colours = Image.new("RGBA", mask.size, colour[:3] + (colour[3],))

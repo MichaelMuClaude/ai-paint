@@ -177,3 +177,21 @@ def test_layer_outline_is_validated():
     assert any("outline colour is not recognised" in p for p in document.validate_document(doc))
     doc["layers"][0]["outline"] = {"colour": "#000000", "width": 40}
     assert any("outline width must be" in p for p in document.validate_document(doc))
+
+
+def test_screentone_shows_its_density_as_grey_dots():
+    from ai_paint.screentone import ScreenTone
+    tone = ScreenTone(density=0.25, cell=8, angle=0, colour=(0, 0, 0, 255))
+    pixels = tone.render((0, 0, 80, 80))
+    coverage = pixels[..., 3].mean() / 255
+    assert coverage == pytest.approx(0.25, abs=0.04)
+
+
+def test_screentone_fill_draws_on_a_layer_and_is_validated():
+    img = _render({"op": "rect", "layer": "l1", "box": [0, 0, 100, 100],
+                   "fill": {"type": "screen", "density": 0.5, "cell": 6, "angle": 45}})
+    grey = [img.getpixel((x, y))[0] for x in range(40) for y in range(40)]
+    assert min(grey) < 60 and max(grey) > 200  # dots and paper both show
+    with pytest.raises(PaintError, match="density must be"):
+        ops.normalise({"op": "rect", "layer": "l1", "box": [0, 0, 5, 5],
+                       "fill": {"type": "screen", "density": 0}}, (100, 100))

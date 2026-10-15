@@ -7,13 +7,12 @@ Goal: an AI agent can draw a manga page the way a manga artist does: clean line 
 1. **Line art** (in progress)
    - Done: tapered strokes (`taper`), SVG paths with curves and arcs, layer outlines (`outline`).
    - Next: a stroke width profile (thick to thin along a stroke), and a line stabiliser that smooths a hand-written path.
-2. **Page layout**
-   - Page sizes (for example B5 and A4) with a margin.
-   - Panels: rectangles with borders and gutters, plus slanted panels.
-   - Speech balloons: an ellipse or rounded shape with a tail path, and text centred in it (`align`, `valign`, `measure`).
-   - Vertical text for Japanese-style lettering.
-3. **Screentones**
-   - A pattern fill: dot and line screens, with a density and an angle. Pillow can generate the dot pattern.
+2. **Page layout** (first version done)
+   - Done: page presets (`--preset manga-b5`, `manga-b6`) at 300 dpi; panels as framed rectangles; speech balloons with tails (`balloon`); CJK text through Noto Sans CJK (`font`); examples/manga-page-changes.json.
+   - Next: slanted panels, vertical text for Japanese-style lettering, and balloon padding rules.
+3. **Screentones** (first version done)
+   - Done: generated dot screens, as a fill with `density`, `cell` and `angle`. No downloads are needed, so there is no licence issue.
+   - Next: line screens and gradient screens.
 4. **Reference sketches**
    - A `trace` command that turns a user-supplied sketch into path ops.
    - A reference layer that is shown while drawing but not exported.
