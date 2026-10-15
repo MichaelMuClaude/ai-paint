@@ -126,3 +126,33 @@ def test_blur_is_validated():
     doc = document.new_document(10, 10)
     doc["layers"][0]["blur"] = 500
     assert any("blur must be" in problem for problem in document.validate_document(doc))
+
+
+def test_arc_passes_through_its_end_and_bulges_the_right_way():
+    # A half circle of radius 10 from (0, 0) to (20, 0). With sweep 1 it bulges up (negative y).
+    points, closed = svgpath.parse("M 0 0 A 10 10 0 0 1 20 0")[0]
+    assert points[-1] == (20, 0)
+    middle = min(points, key=lambda p: p[1])
+    assert middle[0] == pytest.approx(10, abs=1.0)
+    assert middle[1] == pytest.approx(-10, abs=0.2)
+    assert not closed
+
+
+def test_arc_sweep_flag_chooses_the_other_side():
+    points, _ = svgpath.parse("M 0 0 A 10 10 0 0 0 20 0")[0]
+    assert max(points, key=lambda p: p[1])[1] == pytest.approx(10, abs=0.2)
+
+
+def test_arc_with_zero_radius_is_a_straight_line():
+    points, _ = svgpath.parse("M 0 0 A 0 0 0 0 1 20 0")[0]
+    assert points == [(0, 0), (20, 0)]  # a straight line from the start point
+
+
+def test_arc_flags_must_be_zero_or_one():
+    with pytest.raises(PaintError, match="arc flags"):
+        svgpath.parse("M 0 0 A 10 10 0 2 1 20 0")
+
+
+def test_arc_needs_seven_numbers():
+    with pytest.raises(PaintError, match="needs 7 numbers"):
+        svgpath.parse("M 0 0 A 10 10 0 0 1 20")

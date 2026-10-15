@@ -36,8 +36,8 @@ def _register(name, summary, params, draw, check=None):
 
 OPACITY = Param("opacity", "float", "How strongly the colour is applied, 0 to 1",
                 required=False, default=1.0, minimum=0, maximum=1)
-WIDTH = Param("width", "int", "Outline width in pixels", required=False, default=1,
-              minimum=1, maximum=MAX_WIDTH)
+WIDTH = Param("width", "float", "Outline width in pixels, from 0.5 (decimals are fine)", required=False,
+              default=1, minimum=0.5, maximum=MAX_WIDTH)
 FILL = Param("fill", "paint", "Fill: a colour such as #ff0000 or #ff000080, or a gradient object", required=False)
 OUTLINE = Param("outline", "paint", "Outline: a colour or a gradient object", required=False)
 

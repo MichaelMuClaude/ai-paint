@@ -2,8 +2,8 @@
 
 Supported commands, in both absolute (upper case) and relative (lower case) forms:
 M (move), L (line), H and V (horizontal and vertical lines), C (cubic curve), S (smooth cubic),
-Q (quadratic curve), T (smooth quadratic), and Z (close the subpath).
-Arcs (A) are not supported; approximate them with curves.
+Q (quadratic curve), T (smooth quadratic), A (elliptical arc), and Z (close the subpath).
+Arc flags must be separate numbers, written as 0 or 1 with spaces around them.
 """
 
 import math
@@ -13,8 +13,8 @@ from ai_paint.errors import PaintError
 
 COORD_LIMIT = 100_000
 MAX_FLAT_POINTS = 20_000
-TOKEN = re.compile(r"[MmLlHhVvCcSsQqTtZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
-ARGUMENTS = {"M": 2, "L": 2, "H": 1, "V": 1, "C": 6, "S": 4, "Q": 4, "T": 2, "Z": 0}
+TOKEN = re.compile(r"[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+ARGUMENTS = {"M": 2, "L": 2, "H": 1, "V": 1, "C": 6, "S": 4, "Q": 4, "T": 2, "A": 7, "Z": 0}
 
 
 def _tokens(data: str) -> list[str]:
@@ -54,6 +54,59 @@ def _quadratic(p0, c, p1) -> list:
             u * u * p0[0] + 2 * u * t * c[0] + t * t * p1[0],
             u * u * p0[1] + 2 * u * t * c[1] + t * t * p1[1],
         ))
+    return out
+
+
+def _angle(ux, uy, vx, vy) -> float:
+    sign = 1 if ux * vy - uy * vx >= 0 else -1
+    dot = (ux * vx + uy * vy) / (math.hypot(ux, uy) * math.hypot(vx, vy))
+    return sign * math.acos(max(-1.0, min(1.0, dot)))
+
+
+def _arc(start, rx, ry, rotation_deg, large, sweep, end) -> list:
+    """Flatten an SVG elliptical arc (endpoint form, converted to centre form as in the SVG specification)."""
+    x1, y1 = start
+    x2, y2 = end
+    if (x1, y1) == (x2, y2):
+        return []
+    rx, ry = abs(rx), abs(ry)
+    if rx == 0 or ry == 0:
+        return [end]
+    phi = math.radians(rotation_deg)
+    cos_phi, sin_phi = math.cos(phi), math.sin(phi)
+    dx, dy = (x1 - x2) / 2, (y1 - y2) / 2
+    x1p = cos_phi * dx + sin_phi * dy
+    y1p = -sin_phi * dx + cos_phi * dy
+    lam = x1p * x1p / (rx * rx) + y1p * y1p / (ry * ry)
+    if lam > 1:
+        rx *= math.sqrt(lam)
+        ry *= math.sqrt(lam)
+    numerator = rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p
+    denominator = rx * rx * y1p * y1p + ry * ry * x1p * x1p
+    coefficient = math.sqrt(max(0.0, numerator / denominator)) if denominator else 0.0
+    if large == sweep:
+        coefficient = -coefficient
+    cxp = coefficient * rx * y1p / ry
+    cyp = -coefficient * ry * x1p / rx
+    cx = cos_phi * cxp - sin_phi * cyp + (x1 + x2) / 2
+    cy = sin_phi * cxp + cos_phi * cyp + (y1 + y2) / 2
+    ux, uy = (x1p - cxp) / rx, (y1p - cyp) / ry
+    vx, vy = (-x1p - cxp) / rx, (-y1p - cyp) / ry
+    theta1 = _angle(1.0, 0.0, ux, uy)
+    delta = _angle(ux, uy, vx, vy)
+    if not sweep and delta > 0:
+        delta -= 2 * math.pi
+    if sweep and delta < 0:
+        delta += 2 * math.pi
+    steps = max(16, min(400, int(abs(delta) * max(rx, ry))))
+    out = []
+    for step in range(1, steps + 1):
+        theta = theta1 + delta * step / steps
+        out.append((
+            cx + rx * math.cos(theta) * cos_phi - ry * math.sin(theta) * sin_phi,
+            cy + rx * math.cos(theta) * sin_phi + ry * math.sin(theta) * cos_phi,
+        ))
+    out[-1] = end
     return out
 
 
@@ -158,6 +211,16 @@ def parse(data: str) -> list[tuple[list, bool]]:
             last_cubic = c2
             last_quad = None
             current = end
+        elif letter == "A":
+            if not points:
+                points = [current]
+            rx, ry, rotation, large, sweep = values[0], values[1], values[2], values[3], values[4]
+            if large not in (0.0, 1.0) or sweep not in (0.0, 1.0):
+                raise PaintError("arc flags must be 0 or 1")
+            end = absolute(values[5], values[6])
+            points.extend(_arc(current, rx, ry, rotation, int(large), int(sweep), end))
+            current = end
+            last_cubic = last_quad = None
         elif letter in "QT":
             if not points:
                 points = [current]

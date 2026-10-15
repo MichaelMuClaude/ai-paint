@@ -44,7 +44,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 | `text` | Text at a point, in a `size` in pixels. `align` (left, center, right) and `valign` (top, middle, bottom) say which part of the text sits on the point. Use `\n` for a new line. The built-in font covers Latin letters; pass `font` (an absolute path to a `.ttf` or `.otf` file) for other scripts. |
 | `place` | Paste a PNG, JPEG, or WebP picture with its top-left corner at a point. Its own transparency is kept. `width` or `height` resizes it, keeping its proportions. |
 | `erase` | Make a `rect` or `ellipse` box transparent on its own layer. `opacity` 1 removes it fully. |
-| `path` | A shape or line from SVG path data: `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `Z`, absolute or relative. Curves are smooth. Use it for faces, limbs, clothing, and anything organic. `fill` and `outline` both work. |
+| `path` | A shape or line from SVG path data: `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A` (arc), `Z`, absolute or relative. Arc flags are separate `0` or `1` numbers. Curves are smooth. Use it for faces, limbs, clothing, and anything organic. `fill` and `outline` both work. |
 | `fill` | Flood fill from a seed point on its layer. `tolerance` (0 to 255) is the total difference allowed across red, green, blue and alpha, so `6` lets through a pixel that is 2 darker in each of R, G and B. |
 
 Fills and outlines (`fill`, `outline`) take a colour, or a gradient:
@@ -56,9 +56,10 @@ Fills and outlines (`fill`, `outline`) take a colour, or a gradient:
 
 Stop positions go from 0 to 1. A layer can be blurred for glows and soft shadows with `"blur": 14` (pixels), set in the layer's entry in `layers`.
 
+Outline `width` can be a decimal, for example `2.5`, down to `0.5`.
+
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). Relative picture and font paths are read from the document's own folder, so a document and its pictures can be moved together. The `fill` op sets pixels to the colour and does not blend.
 
-- A `path` has no arc command (`A`). Approximate arcs with curves.
 - Shapes and strokes are anti-aliased: edges are drawn at three times the resolution and averaged down. Coordinates are continuous, so the point `(x, y)` is a pixel corner, and a box `[x, y, 20, 20]` covers exactly 20 by 20 pixels. Outlines are centred on the box edge.
 
 ## Commands

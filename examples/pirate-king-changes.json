@@ -25,10 +25,14 @@
    "id": "face"
   },
   {
+   "id": "blush",
+   "blur": 5
+  },
+  {
    "id": "hat"
   },
   {
-   "id": "detail"
+   "id": "features"
   },
   {
    "id": "words"
@@ -277,80 +281,9 @@
    "fill": "#f1c27d"
   },
   {
-   "id": "face",
-   "op": "path",
-   "layer": "face",
-   "d": "M 150 200 C 150 150 250 150 250 200 C 250 236 228 252 200 252 C 172 252 150 236 150 200 Z",
-   "fill": {
-    "type": "radial",
-    "centre": [
-     190,
-     190
-    ],
-    "radius": 70,
-    "stops": [
-     [
-      0,
-      "#f8d19a"
-     ],
-     [
-      1,
-      "#e0a46b"
-     ]
-    ]
-   }
-  },
-  {
-   "op": "path",
-   "layer": "face",
-   "d": "M 172 186 q 8 -8 16 0",
-   "outline": "#1b1b1b",
-   "width": 3
-  },
-  {
-   "op": "path",
-   "layer": "face",
-   "d": "M 212 186 q 8 -8 16 0",
-   "outline": "#1b1b1b",
-   "width": 3
-  },
-  {
-   "op": "ellipse",
-   "layer": "face",
-   "box": [
-    176,
-    190,
-    11,
-    14
-   ],
-   "fill": "#1b1b1b"
-  },
-  {
-   "op": "ellipse",
-   "layer": "face",
-   "box": [
-    214,
-    190,
-    11,
-    14
-   ],
-   "fill": "#1b1b1b"
-  },
-  {
-   "op": "ellipse",
-   "layer": "face",
-   "box": [
-    197,
-    210,
-    7,
-    6
-   ],
-   "fill": "#c98a5a"
-  },
-  {
    "op": "path",
    "layer": "hat",
-   "d": "M 112 166 C 112 152 288 152 288 166 C 288 178 112 178 112 166 Z",
+   "d": "M 112 156 C 112 142 288 142 288 156 C 288 168 112 168 112 156 Z",
    "fill": {
     "type": "linear",
     "from": [
@@ -378,7 +311,7 @@
   {
    "op": "path",
    "layer": "hat",
-   "d": "M 164 150 C 160 90 240 90 236 150 C 236 158 164 158 164 150 Z",
+   "d": "M 164 140 C 160 80 240 80 236 140 C 236 148 164 148 164 140 Z",
    "fill": {
     "type": "linear",
     "from": [
@@ -406,22 +339,8 @@
   {
    "op": "path",
    "layer": "hat",
-   "d": "M 164 134 C 190 128 210 128 236 134 L 236 148 C 210 142 190 142 164 148 Z",
+   "d": "M 164 124 C 190 118 210 118 236 124 L 236 138 C 210 132 190 132 164 138 Z",
    "fill": "#c1121f"
-  },
-  {
-   "op": "path",
-   "layer": "detail",
-   "d": "M 170 224 C 184 240 216 240 230 224",
-   "outline": "#7a1f1f",
-   "width": 4
-  },
-  {
-   "op": "path",
-   "layer": "detail",
-   "d": "M 174 206 L 184 224",
-   "outline": "#8a4b3a",
-   "width": 2
   },
   {
    "op": "text",
@@ -435,6 +354,240 @@
    "align": "center",
    "valign": "middle",
    "colour": "#f1faee"
+  },
+  {
+   "op": "ellipse",
+   "layer": "body",
+   "box": [
+    141,
+    178,
+    16,
+    26
+   ],
+   "fill": "#e8a86e"
+  },
+  {
+   "op": "ellipse",
+   "layer": "body",
+   "box": [
+    243,
+    178,
+    16,
+    26
+   ],
+   "fill": "#e8a86e"
+  },
+  {
+   "id": "face",
+   "op": "path",
+   "layer": "face",
+   "d": "M 150 200 C 150 150 250 150 250 200 C 250 236 228 252 200 252 C 172 252 150 236 150 200 Z",
+   "fill": {
+    "type": "radial",
+    "centre": [
+     190,
+     190
+    ],
+    "radius": 70,
+    "stops": [
+     [
+      0,
+      "#f8d19a"
+     ],
+     [
+      1,
+      "#e0a46b"
+     ]
+    ]
+   }
+  },
+  {
+   "op": "ellipse",
+   "layer": "blush",
+   "box": [
+    156,
+    204,
+    32,
+    20
+   ],
+   "fill": "#ff6b6b"
+  },
+  {
+   "op": "ellipse",
+   "layer": "blush",
+   "box": [
+    212,
+    204,
+    32,
+    20
+   ],
+   "fill": "#ff6b6b"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 172 193 C 178 181 192 181 198 193 C 192 203 178 203 172 193 Z",
+   "fill": "#fffdf7"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 202 193 C 208 181 222 181 228 193 C 222 203 208 203 202 193 Z",
+   "fill": "#fffdf7"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    181,
+    186,
+    14,
+    14
+   ],
+   "fill": "#5a3a1e"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    205,
+    186,
+    14,
+    14
+   ],
+   "fill": "#5a3a1e"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    185,
+    189,
+    7,
+    8
+   ],
+   "fill": "#111111"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    209,
+    189,
+    7,
+    8
+   ],
+   "fill": "#111111"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    182,
+    186,
+    4,
+    4
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    206,
+    186,
+    4,
+    4
+   ],
+   "fill": "#ffffff"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 170 191 C 178 180 194 180 200 192",
+   "outline": "#2b1a10",
+   "width": 2.5
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 200 192 C 206 180 222 180 230 191",
+   "outline": "#2b1a10",
+   "width": 2.5
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 166 176 C 176 166 192 164 202 172 C 192 170 178 172 168 180 Z",
+   "fill": "#2b1a10"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 234 176 C 224 166 208 164 198 172 C 208 170 222 172 232 180 Z",
+   "fill": "#2b1a10"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 200 196 C 196 204 194 208 198 211 C 202 213 206 212 208 210",
+   "outline": "#a86a3a",
+   "width": 2.2
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    195,
+    209,
+    4,
+    3
+   ],
+   "fill": "#8a4b2a"
+  },
+  {
+   "op": "ellipse",
+   "layer": "features",
+   "box": [
+    203,
+    209,
+    4,
+    3
+   ],
+   "fill": "#8a4b2a"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 166 220 C 178 246 222 246 234 220 C 220 232 180 232 166 220 Z",
+   "fill": "#6e1d1d"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 176 226 C 186 234 214 234 224 226 L 224 230 C 212 240 188 240 176 230 Z",
+   "fill": "#fffdf7"
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 166 220 C 180 226 220 226 234 220",
+   "outline": "#4a1212",
+   "width": 2
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 192 240 q 8 4 16 0",
+   "outline": "#b57a4a",
+   "width": 1.5
+  },
+  {
+   "op": "path",
+   "layer": "features",
+   "d": "M 178 206 L 186 222",
+   "outline": "#9b5a48",
+   "width": 2
   }
  ]
 }

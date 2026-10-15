@@ -385,3 +385,10 @@ def test_place_accepts_jpeg_and_webp(tmp_path):
     img = document.render(doc, tmp_path)
     assert img.getpixel((4, 4))[1] > 200
     assert img.getpixel((14, 4))[0] > 200
+
+
+def test_outline_width_can_be_a_decimal():
+    ops.normalise({"op": "path", "layer": "l1", "d": "M 0 0 L 9 9", "outline": "#000000", "width": 2.5}, (100, 100))
+    with pytest.raises(PaintError, match="width must be at least 0.5"):
+        ops.normalise({"op": "path", "layer": "l1", "d": "M 0 0 L 9 9", "outline": "#000000", "width": 0.2},
+                      (100, 100))

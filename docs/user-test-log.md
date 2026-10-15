@@ -69,3 +69,15 @@ I drew an original straw-hat captain (not an official character drawing) with th
 | 16 | Numeric precision | Pure Pillow cannot do per-pixel gradients fast enough | Added numpy as a dependency (recorded in DESIGN.md and AGENTS.md) |
 
 The redrawn captain (`examples/pirate-king-changes.json`) renders in about 0.14 seconds. It has curved hair, a shaded vest, a glowing sun, and a soft shadow. Remaining weak spots: the face is still simple, and there is no arc command, so round shapes need curves.
+
+## Round 6: the face
+
+The round-5 face was two dots and a line, and it looked bad. The problem was the app's vocabulary rather than only the drawing.
+
+| # | What was missing | Why it hurt | Decision |
+|---|---|---|---|
+| 17 | Arc command | Eyelids, smiles, and cheeks had to be approximated with curves | Added `A` to `path`, following the SVG endpoint-to-centre conversion |
+| 18 | Decimal outline widths | `2.5` was rejected, so fine lines had to be rounded up to 3 | `width` accepts decimals from 0.5 |
+| 19 | Feature layering | The hat brim hid the eyebrows | Drew the features above the hat, and raised the hat 10 px |
+
+The new face has almond eyes with irises, highlights, and eyelids; tapered brows; a nose with nostrils; an open grin with teeth; blush on a blurred layer; and ears. It is checked at 4x zoom. The redrawn captain is `examples/pirate-king-changes.json`. The tests now number 136.
