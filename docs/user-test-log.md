@@ -45,3 +45,14 @@ I made a poster with a pasted logo, a bitten hole in a band, and two-line text. 
 ## Round 3 decision
 
 The tool now covers the drawing tasks I tried. Changes are by id, and checking is by rendering and looking. The next thing to test is a larger, real-looking piece with many layers, to see whether the file gets hard to read.
+
+## Round 4: a larger picture (270 ops, six layers)
+
+I drew a night skyline: stars, a moon, twelve buildings with about 190 windows, and a title. Rendering took about 0.07 seconds, and `list --layer windows` found the window ops straightaway.
+
+| # | What I tried | What happened | Decision |
+|---|---|---|---|
+| 11 | Cut a crescent from the moon with a disc in the sky colour | The disc showed as a dark patch where the sky changed colour | Use `erase` on the moon layer instead. Matching colours is fragile |
+| 12 | Write 270 ops by hand | Too slow to write directly. I generated the window ops with a short script, then applied the file | No change. Scripts are a fine way to produce changes files |
+
+The picture is judged satisfactory for drawing and editing. The remaining gaps are layer reordering and rotation, both documented.
