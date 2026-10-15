@@ -208,16 +208,29 @@ def _font(size: int, font_path: str | None):
 
 
 def draw_text(layer: Image.Image, text: str, xy: list, size: int, font_path: str | None,
-              colour: tuple, opacity: float) -> None:
-    """Write text with its top-left corner at `xy`. Lines are separated by newlines."""
+              colour: tuple, opacity: float, align: str = "left", valign: str = "top") -> None:
+    """Write text so that its ink box sits on `xy`.
+
+    align: left, center or right, which side of the box `xy` is on.
+    valign: top, middle or bottom, which edge of the box `xy` is on.
+    Lines are separated by newlines and are aligned to each other by `align`.
+    """
     font = _font(size, font_path)
     measure = ImageDraw.Draw(Image.new("L", (1, 1)))
-    left, top, right, bottom = measure.multiline_textbbox((xy[0], xy[1]), text, font=font)
-    region = _region([[left, top], [right, bottom]], 1, layer.size)
+    left, top, right, bottom = measure.multiline_textbbox((0, 0), text, font=font, align=align)
+    width, height = right - left, bottom - top
+    anchor_x = {"left": 0, "center": width / 2, "right": width}[align]
+    anchor_y = {"top": 0, "middle": height / 2, "bottom": height}[valign]
+    origin_x = xy[0] - anchor_x - left
+    origin_y = xy[1] - anchor_y - top
+    box = [origin_x + left, origin_y + top, origin_x + right, origin_y + bottom]
+    region = _region([box[:2], box[2:]], 1, layer.size)
     if region is None:
         return
     mask = Image.new("L", (region[2] - region[0], region[3] - region[1]), 0)
-    ImageDraw.Draw(mask).multiline_text((xy[0] - region[0], xy[1] - region[1]), text, fill=255, font=font)
+    ImageDraw.Draw(mask).multiline_text(
+        (origin_x - region[0], origin_y - region[1]), text, fill=255, font=font, align=align
+    )
     paint(layer, mask, region, colour, opacity)
 
 

@@ -15,7 +15,7 @@ MAX_PIXELS = 25_000_000
 BLEND_MODES = ("normal",)
 DOCUMENT_KEYS = {"schema", "canvas", "layers", "ops"}
 LAYER_KEYS = {"id", "name", "opacity", "visible", "blend"}
-CHANGE_KEYS = {"layers", "ops"}
+CHANGE_KEYS = {"layers", "ops", "update", "remove", "update_layers", "remove_layers"}
 
 
 def _whole(value, label: str, low: int, high: int) -> int:
@@ -101,7 +101,8 @@ def validate_document(doc) -> list[str]:
         return problems + ["ops must be a list"]
     op_ids = set()
     for index, raw in enumerate(operations):
-        prefix = f"ops[{index}]: "
+        label = raw.get("id") if isinstance(raw, dict) else None
+        prefix = f"ops[{index}]" + (f" (id {label})" if isinstance(label, str) else "") + ": "
         try:
             ops.normalise(raw, size)
         except PaintError as exc:
@@ -156,33 +157,101 @@ def _next_id(prefix: str, taken: set) -> str:
     return f"{prefix}{number}"
 
 
-def apply_changes(doc: dict, changes) -> dict:
-    """Return a new document with the changes added. The input document is not modified.
+def _layer_index(layers: list, layer_id: str, action: str) -> int:
+    for index, layer in enumerate(layers):
+        if isinstance(layer, dict) and layer.get("id") == layer_id:
+            return index
+    raise PaintError(f"{action}: there is no layer with id {layer_id!r}; run 'ai-paint info' to see the ids")
 
-    `changes` may contain "layers" (added at the top) and "ops" (appended in order).
+
+def _op_index(operations: list, op_id: str, action: str) -> int:
+    for index, op in enumerate(operations):
+        if isinstance(op, dict) and op.get("id") == op_id:
+            return index
+    raise PaintError(f"{action}: there is no op with id {op_id!r}; run 'ai-paint list' to see the ids")
+
+
+def apply_changes(doc: dict, changes) -> dict:
+    """Return a new document with the changes applied. The input document is not modified.
+
+    `changes` may contain:
+    - "layers": layers to add to the top of the stack
+    - "ops": operations to append, in order
+    - "update": {op_id: {field: value, ...}} to change fields of existing ops; other fields stay
+    - "remove": [op_id, ...] to delete existing ops
+    - "update_layers": {layer_id: {field: value, ...}} to change fields of existing layers
+    - "remove_layers": [layer_id, ...] to delete layers that have no ops left on them
     Items without an id get one. The result is validated before it is returned.
     """
     if not isinstance(changes, dict):
-        raise PaintError("changes must be a JSON object with optional 'layers' and 'ops' lists")
+        raise PaintError("changes must be a JSON object with optional 'layers', 'ops', 'update' and 'remove'")
     unknown = sorted(set(changes) - CHANGE_KEYS)
     if unknown:
         raise PaintError(f"changes has unknown field(s): {', '.join(unknown)}")
     new_layers = changes.get("layers", [])
     new_ops = changes.get("ops", [])
+    updates = changes.get("update", {})
+    removals = changes.get("remove", [])
+    layer_updates = changes.get("update_layers", {})
+    layer_removals = changes.get("remove_layers", [])
+    if not isinstance(layer_updates, dict):
+        raise PaintError("'update_layers' must be an object mapping layer ids to fields")
+    if not isinstance(layer_removals, list) or not all(isinstance(item, str) for item in layer_removals):
+        raise PaintError("'remove_layers' must be a list of layer ids")
     if not isinstance(new_layers, list) or not isinstance(new_ops, list):
         raise PaintError("'layers' and 'ops' must be lists")
+    if not isinstance(updates, dict):
+        raise PaintError("'update' must be an object mapping op ids to fields")
+    if not isinstance(removals, list) or not all(isinstance(item, str) for item in removals):
+        raise PaintError("'remove' must be a list of op ids")
 
     result = copy.deepcopy(doc)
+    operations = result.setdefault("ops", [])
     layer_ids = {layer.get("id") for layer in result.get("layers", []) if isinstance(layer, dict)}
-    op_ids = {op.get("id") for op in result.get("ops", []) if isinstance(op, dict)}
+    op_ids = {op.get("id") for op in operations if isinstance(op, dict)}
+
+    for op_id in removals:
+        del operations[_op_index(operations, op_id, "remove")]
+        op_ids.discard(op_id)
+    for op_id, fields in updates.items():
+        index = _op_index(operations, op_id, "update")
+        if not isinstance(fields, dict):
+            raise PaintError(f"update {op_id!r}: fields must be an object")
+        if "id" in fields and fields["id"] != op_id:
+            raise PaintError(f"update {op_id!r}: an op's id cannot be changed")
+        operations[index] = {**operations[index], **fields}
+    layers = result.setdefault("layers", [])
+    for layer_id, fields in layer_updates.items():
+        index = _layer_index(layers, layer_id, "update_layers")
+        if not isinstance(fields, dict):
+            raise PaintError(f"update_layers {layer_id!r}: fields must be an object")
+        if "id" in fields and fields["id"] != layer_id:
+            raise PaintError(f"update_layers {layer_id!r}: a layer's id cannot be changed")
+        layers[index] = {**layers[index], **fields}
+    for layer_id in layer_removals:
+        index = _layer_index(layers, layer_id, "remove_layers")
+        still_used = [op for op in operations if isinstance(op, dict) and op.get("layer") == layer_id]
+        if still_used:
+            raise PaintError(
+                f"remove_layers {layer_id!r}: the layer still has {len(still_used)} op(s); "
+                "remove those ops first"
+            )
+        del layers[index]
+        layer_ids.discard(layer_id)
     for layer in new_layers:
         if isinstance(layer, dict) and "id" not in layer:
             layer = {"id": _next_id("l", layer_ids), **layer}
-        result.setdefault("layers", []).append(layer)
+        layers.append(layer)
     for op in new_ops:
         if isinstance(op, dict) and "id" not in op:
             op = {"id": _next_id("o", op_ids), **op}
-        result.setdefault("ops", []).append(op)
+        elif isinstance(op, dict):
+            if op["id"] in op_ids:
+                raise PaintError(
+                    f"duplicate id {op['id']!r}: to change that op use 'update', or 'remove' it first"
+                )
+            op_ids.add(op["id"])
+        operations.append(op)
     _raise_if_invalid(result)
     return result
 

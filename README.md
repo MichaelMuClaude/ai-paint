@@ -41,7 +41,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 | `rect` | A rectangle given as `[x, y, width, height]`, with `fill`, `outline`, or both |
 | `ellipse` | An ellipse inside the same kind of box |
 | `polygon` | A closed shape through a list of points, with `fill`, `outline`, or both |
-| `text` | Text with its top-left corner at a point, in a `size` in pixels. Use `\n` for a new line. The built-in font covers Latin letters; pass `font` (an absolute path to a `.ttf` or `.otf` file) for other scripts. |
+| `text` | Text at a point, in a `size` in pixels. `align` (left, center, right) and `valign` (top, middle, bottom) say which part of the text sits on the point. Use `\n` for a new line. The built-in font covers Latin letters; pass `font` (an absolute path to a `.ttf` or `.otf` file) for other scripts. |
 | `fill` | Flood fill from a seed point on its layer. `tolerance` (0 to 255) is the total difference allowed across red, green, blue and alpha, so `6` lets through a pixel that is 2 darker in each of R, G and B. |
 
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). The `fill` op sets pixels to the colour and does not blend.
@@ -59,7 +59,20 @@ Shapes and strokes are anti-aliased: edges are drawn at three times the resoluti
 | `apply FILE --changes CHANGES.json -o NEW.json` | Add layers and ops and write a new document. The input is never changed. |
 | `render FILE -o PICTURE.png` | Draw the document. Output can be `.png`, `.jpg`, or `.webp`. Add `--grid STEP`, `--crop X,Y,W,H`, and `--zoom N` to look at it more closely (see below). |
 
-`apply` takes a JSON object with optional `layers` and `ops` lists. Items without an `id` get one. The result is validated before anything is written.
+`apply` takes a JSON object. All keys are optional:
+
+| Key | Effect |
+|---|---|
+| `layers` | Add layers to the top of the stack |
+| `ops` | Append operations, in order |
+| `update` | `{"op-id": {"fill": "#ffd6a5"}}` changes only the fields given |
+| `remove` | `["op-id", ...]` deletes ops |
+| `update_layers` | `{"layer-id": {"opacity": 0.5}}` changes layer fields |
+| `remove_layers` | `["layer-id", ...]` deletes layers that have no ops left |
+
+Items without an `id` get one. The result is validated before anything is written, and errors name the op id.
+
+`ai-paint list FILE` shows every op with its id, layer, and values. Use `--text` for one line per op, and `--layer ID` to filter.
 
 ### Looking at a picture
 

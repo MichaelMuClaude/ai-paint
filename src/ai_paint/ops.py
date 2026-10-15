@@ -152,15 +152,21 @@ _register(
 
 
 def _draw_text(layer, v, size):
-    raster.draw_text(layer, v["text"], v["point"], v["size"], v["font"], v["colour"], v["opacity"])
+    raster.draw_text(layer, v["text"], v["point"], v["size"], v["font"], v["colour"], v["opacity"],
+                     align=v["align"], valign=v["valign"])
 
 
 _register(
     "text",
-    "Write text with its top-left corner at a point. Use \\n inside the text for a new line.",
+    "Write text. The point is the anchor: align and valign say which part of the text box sits on it. "
+    "Use \\n inside the text for a new line.",
     [
         Param("text", "text", "The text to write"),
-        Param("point", "point", "Top-left corner [x, y] of the text in pixels"),
+        Param("point", "point", "Anchor [x, y] in pixels; by default the top-left corner of the text"),
+        Param("align", "choice", "Which side of the text the point is on, for each line",
+              required=False, default="left", choices=("left", "center", "right")),
+        Param("valign", "choice", "Which edge of the text the point is on",
+              required=False, default="top", choices=("top", "middle", "bottom")),
         Param("size", "int", "Font size in pixels", minimum=4, maximum=500),
         Param("colour", "colour", "Text colour"),
         Param("font", "path", "Optional .ttf or .otf font file, as an absolute path. "

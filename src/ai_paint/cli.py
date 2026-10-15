@@ -57,6 +57,39 @@ def _info(args) -> int:
     return 0
 
 
+def _describe(raw: dict) -> str:
+    """A short, readable summary of an op's values, for the list command."""
+    parts = []
+    for key, value in raw.items():
+        if key in ("op", "id", "layer"):
+            continue
+        text = json.dumps(value, ensure_ascii=False)
+        if len(text) > 48:
+            text = text[:45] + "..."
+        parts.append(f"{key}={text}")
+    return " ".join(parts)
+
+
+def _list(args) -> int:
+    try:
+        doc = document.load(Path(args.document))
+    except PaintError as exc:
+        return _fail(str(exc))
+    operations = doc.get("ops", []) if isinstance(doc.get("ops"), list) else []
+    rows = [
+        {"index": index, "id": op.get("id"), "layer": op.get("layer"), "op": op.get("op"),
+         "values": _describe(op)}
+        for index, op in enumerate(operations)
+        if isinstance(op, dict) and (args.layer is None or op.get("layer") == args.layer)
+    ]
+    if args.text:
+        for row in rows:
+            print(f"{str(row['id']):<8} {str(row['layer']):<12} {str(row['op']):<8} {row['values']}")
+    else:
+        print(json.dumps(rows, indent=2, ensure_ascii=False))
+    return 0
+
+
 def _ops(args) -> int:
     catalogue = []
     for operation in ops.OPERATIONS.values():
@@ -171,6 +204,12 @@ def main() -> None:
     info.add_argument("document")
     info.set_defaults(func=_info)
 
+    listing = sub.add_parser("list", help="List a document's ops with their ids, layers, and values")
+    listing.add_argument("document")
+    listing.add_argument("--layer", help="Only show ops on this layer id")
+    listing.add_argument("--text", action="store_true", help="Print one line per op instead of JSON")
+    listing.set_defaults(func=_list)
+
     catalogue = sub.add_parser("ops", help="List every operation and its parameters as JSON")
     catalogue.set_defaults(func=_ops)
 
@@ -178,7 +217,7 @@ def main() -> None:
     validate.add_argument("document")
     validate.set_defaults(func=_validate)
 
-    apply = sub.add_parser("apply", help="Add layers and operations, and write a new document")
+    apply = sub.add_parser("apply", help="Add, change, or remove layers and operations, and write a new document")
     apply.add_argument("document", help="Input document; it is never changed")
     apply.add_argument("-o", "--output", required=True, help="New document file (.json)")
     source = apply.add_mutually_exclusive_group(required=True)

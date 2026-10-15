@@ -143,3 +143,77 @@ def test_jpeg_output_is_flattened_onto_white(tmp_path):
     document.save_image(Image.new("RGBA", (4, 4), (0, 0, 0, 0)), path)
     with Image.open(path) as saved:
         assert saved.getpixel((1, 1))[0] > 240
+
+
+def test_update_merges_fields_and_keeps_the_rest():
+    doc = document.new_document(40, 40)
+    doc = document.apply_changes(doc, {"ops": [
+        {"id": "box", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "red"},
+    ]})
+    result = document.apply_changes(doc, {"update": {"box": {"fill": "blue"}}})
+    assert result["ops"][0] == {"id": "box", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "blue"}
+    assert doc["ops"][0]["fill"] == "red"  # the input is unchanged
+
+
+def test_remove_deletes_by_id():
+    doc = document.new_document(40, 40)
+    doc = document.apply_changes(doc, {"ops": [
+        {"id": "a", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "red"},
+        {"id": "b", "op": "rect", "layer": "l1", "box": [5, 5, 5, 5], "fill": "blue"},
+    ]})
+    result = document.apply_changes(doc, {"remove": ["a"]})
+    assert [op["id"] for op in result["ops"]] == ["b"]
+
+
+def test_unknown_ids_in_update_or_remove_are_reported():
+    doc = document.new_document(40, 40)
+    with pytest.raises(PaintError, match="no op with id 'ghost'.*ai-paint list"):
+        document.apply_changes(doc, {"remove": ["ghost"]})
+    with pytest.raises(PaintError, match="no op with id 'ghost'"):
+        document.apply_changes(doc, {"update": {"ghost": {"fill": "red"}}})
+
+
+def test_an_op_id_cannot_be_changed_by_update():
+    doc = document.new_document(40, 40)
+    doc = document.apply_changes(doc, {"ops": [{"id": "a", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "red"}]})
+    with pytest.raises(PaintError, match="cannot be changed"):
+        document.apply_changes(doc, {"update": {"a": {"id": "z"}}})
+
+
+def test_reusing_an_existing_id_suggests_update():
+    doc = document.new_document(40, 40)
+    doc = document.apply_changes(doc, {"ops": [{"id": "a", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "red"}]})
+    with pytest.raises(PaintError, match="use 'update'"):
+        document.apply_changes(doc, {"ops": [{"id": "a", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "red"}]})
+
+
+def test_remove_then_add_with_the_same_id_is_allowed():
+    doc = document.new_document(40, 40)
+    doc = document.apply_changes(doc, {"ops": [{"id": "a", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5], "fill": "red"}]})
+    result = document.apply_changes(doc, {"remove": ["a"],
+                                          "ops": [{"id": "a", "op": "rect", "layer": "l1", "box": [0, 0, 9, 9], "fill": "blue"}]})
+    assert result["ops"][0]["box"] == [0, 0, 9, 9]
+
+
+def test_update_layers_changes_opacity_and_visibility():
+    doc = document.new_document(40, 40)
+    result = document.apply_changes(doc, {"update_layers": {"l1": {"opacity": 0.5, "visible": False}}})
+    assert result["layers"][0]["opacity"] == 0.5
+    assert result["layers"][0]["visible"] is False
+
+
+def test_remove_layers_only_when_no_ops_use_them():
+    doc = document.new_document(40, 40)
+    doc = document.apply_changes(doc, {"layers": [{"id": "ink"}],
+                                       "ops": [{"op": "rect", "layer": "ink", "box": [0, 0, 5, 5], "fill": "red"}]})
+    with pytest.raises(PaintError, match="still has 1 op"):
+        document.apply_changes(doc, {"remove_layers": ["ink"]})
+    cleaned = document.apply_changes(doc, {"remove": ["o1"], "remove_layers": ["ink"]})
+    assert [layer["id"] for layer in cleaned["layers"]] == ["l1"]
+
+
+def test_op_errors_name_the_op_id():
+    doc = document.new_document(40, 40)
+    doc["ops"] = [{"id": "disc", "op": "rect", "layer": "l1", "box": [0, 0, 5, 5]}]
+    problems = document.validate_document(doc)
+    assert problems == ["ops[0] (id disc): give a fill colour, an outline colour, or both"]

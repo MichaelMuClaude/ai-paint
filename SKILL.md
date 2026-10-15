@@ -13,7 +13,9 @@ description: Draw or edit a picture from a JSON document of explicit operations 
 4. Apply the changes to a new file: `ai-paint apply drawing.json --changes changes.json -o drawing-2.json`. `apply` refuses any change that would make the document invalid, and says why.
 5. Check any document at any time: `ai-paint validate drawing-2.json`.
 6. Render it: `ai-paint render drawing-2.json -o drawing-2.png`, then look at the PNG with the Read tool and compare it with what the user asked for. To place things accurately, render with a grid first: `ai-paint render drawing-2.json -o grid.png --grid 20`. Zoom into a detail with `--crop X,Y,W,H --zoom 3`. Grids and crops are for looking only.
-7. If something is wrong, write a new changes file and apply it to a new file name. Do not overwrite earlier results.
+7. If something is wrong, write a changes file that uses `update` (change fields of an op by id) or `remove` (delete an op), and apply it to a new file name. Do not overwrite earlier results.
+
+Run `ai-paint list drawing-2.json --text` to see every op's id before you change one.
 
 Use `ai-paint info FILE` to see the layers, the op counts, and any problems in one place.
 
@@ -21,7 +23,9 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 
 - Never write to the input document or picture. Always use a new output name.
 - Coordinates are pixels from the top-left corner. `box` is `[x, y, width, height]`. Points can be decimals.
+- Give important ops an `id` (for example `"id": "logo-box"`), so you can `update` or `remove` them later without looking up a generated id.
 - Operations are drawn in order, so a later one lands on top of an earlier one in the same layer.
+- To centre text on a point, use `"align": "center", "valign": "middle"`. Do not estimate the text width.
 - To fill inside a shape, draw its outline first on the same layer, then use `fill` from a point inside it.
 - Colours are names such as `red`, or `#rrggbb` or `#rrggbbaa` for transparency.
 - Layers are stacked in list order, bottom first. A layer with `"visible": false` is not drawn.

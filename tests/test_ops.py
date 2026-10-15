@@ -246,3 +246,21 @@ def test_text_must_not_be_empty_or_too_long():
     with pytest.raises(PaintError, match="at most 500 characters"):
         ops.normalise({"op": "text", "layer": "l1", "text": "x" * 501, "point": [0, 0], "size": 10,
                        "colour": "red"}, (100, 100))
+
+
+def test_text_centred_on_a_point_is_centred_on_it():
+    img = _render({"op": "text", "layer": "l1", "text": "M", "point": [50, 50], "size": 30, "align": "center",
+                   "valign": "middle", "colour": "#000000"}, width=100, height=100)
+    inked = [(x, y) for x in range(100) for y in range(100) if img.getpixel((x, y))[0] < 128]
+    xs = [x for x, _ in inked]
+    ys = [y for _, y in inked]
+    assert abs((min(xs) + max(xs)) / 2 - 50) <= 1
+    assert abs((min(ys) + max(ys)) / 2 - 50) <= 1
+
+
+def test_text_right_aligned_ends_at_the_point():
+    img = _render({"op": "text", "layer": "l1", "text": "Hi", "point": [60, 10], "size": 20, "align": "right",
+                   "colour": "#000000"}, width=100, height=40)
+    inked_x = [x for x in range(100) for y in range(40) if img.getpixel((x, y))[0] < 128]
+    assert max(inked_x) <= 60
+    assert max(inked_x) >= 55

@@ -107,3 +107,36 @@ def test_new_refuses_to_replace_without_force(tmp_path):
     again = run("new", str(doc), "--width", "10", "--height", "10")
     assert again.returncode == 1
     assert "already exists" in again.stderr
+
+
+def test_list_shows_ids_layers_and_values(tmp_path):
+    doc = tmp_path / "pic.json"
+    run("new", str(doc), "--width", "50", "--height", "50")
+    changes = tmp_path / "c.json"
+    changes.write_text(json.dumps({"layers": [{"id": "top"}], "ops": [
+        {"id": "box", "op": "rect", "layer": "l1", "box": [1, 2, 3, 4], "fill": "red"},
+        {"op": "text", "layer": "top", "text": "Hi", "point": [5, 5], "size": 12, "colour": "blue"},
+    ]}))
+    out = tmp_path / "pic2.json"
+    assert run("apply", str(doc), "--changes", str(changes), "-o", str(out)).returncode == 0
+    rows = json.loads(run("list", str(out)).stdout)
+    assert [row["id"] for row in rows] == ["box", "o1"]
+    assert rows[0]["values"] == 'box=[1, 2, 3, 4] fill="red"'
+    only_top = json.loads(run("list", str(out), "--layer", "top").stdout)
+    assert [row["id"] for row in only_top] == ["o1"]
+    text = run("list", str(out), "--text").stdout
+    assert "box" in text and "rect" in text
+
+
+def test_apply_can_update_and_remove_from_the_command_line(tmp_path):
+    doc = tmp_path / "pic.json"
+    run("new", str(doc), "--width", "50", "--height", "50")
+    first = tmp_path / "first.json"
+    run("apply", str(doc), "--change", '{"ops":[{"id":"box","op":"rect","layer":"l1","box":[0,0,9,9],"fill":"red"}]}', "-o", str(first))
+    second = tmp_path / "second.json"
+    result = run("apply", str(first), "--change", '{"update":{"box":{"fill":"blue"}}}', "-o", str(second))
+    assert result.returncode == 0, result.stderr
+    assert json.loads(second.read_text())["ops"][0]["fill"] == "blue"
+    third = tmp_path / "third.json"
+    run("apply", str(second), "--change", '{"remove":["box"]}', "-o", str(third))
+    assert json.loads(third.read_text())["ops"] == []
