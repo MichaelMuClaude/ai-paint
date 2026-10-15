@@ -49,8 +49,8 @@ def _need_fill_or_outline(values):
 
 def _draw_stroke(layer, v, size):
     style = raster.BRUSHES[v["brush"]]
-    mask = raster.stroke_mask(size, v["points"], v["size"] / 2, style["hardness"], style["spacing"])
-    raster.paint(layer, mask, v["colour"], v["opacity"])
+    raster.draw_stroke(layer, v["points"], v["size"] / 2, style["hardness"], style["spacing"],
+                       v["colour"], v["opacity"])
 
 
 _register(
@@ -69,8 +69,7 @@ _register(
 
 
 def _draw_line(layer, v, size):
-    mask = raster.shape_mask(size, "polyline", v["points"], filled=False, width=v["width"])
-    raster.paint(layer, mask, v["colour"], v["opacity"])
+    raster.draw_shape(layer, "polyline", v["points"], v["colour"], v["opacity"], filled=False, width=v["width"])
 
 
 _register(
@@ -89,11 +88,9 @@ _register(
 def _draw_box_shape(shape):
     def draw(layer, v, size):
         if v["fill"] is not None:
-            mask = raster.shape_mask(size, shape, v["box"], filled=True)
-            raster.paint(layer, mask, v["fill"], v["opacity"])
+            raster.draw_shape(layer, shape, v["box"], v["fill"], v["opacity"], filled=True)
         if v["outline"] is not None:
-            mask = raster.shape_mask(size, shape, v["box"], filled=False, width=v["width"])
-            raster.paint(layer, mask, v["outline"], v["opacity"])
+            raster.draw_shape(layer, shape, v["box"], v["outline"], v["opacity"], filled=False, width=v["width"])
     return draw
 
 
@@ -116,11 +113,9 @@ _register(
 
 def _draw_polygon(layer, v, size):
     if v["fill"] is not None:
-        mask = raster.shape_mask(size, "polygon", v["points"], filled=True)
-        raster.paint(layer, mask, v["fill"], v["opacity"])
+        raster.draw_shape(layer, "polygon", v["points"], v["fill"], v["opacity"], filled=True)
     if v["outline"] is not None:
-        mask = raster.shape_mask(size, "polygon", v["points"], filled=False, width=v["width"])
-        raster.paint(layer, mask, v["outline"], v["opacity"])
+        raster.draw_shape(layer, "polygon", v["points"], v["outline"], v["opacity"], filled=False, width=v["width"])
 
 
 _register(

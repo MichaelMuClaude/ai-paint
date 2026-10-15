@@ -20,7 +20,7 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 ## Rules
 
 - Never write to the input document or picture. Always use a new output name.
-- Coordinates are pixels from the top-left corner. `box` is `[x, y, width, height]`.
+- Coordinates are pixels from the top-left corner. `box` is `[x, y, width, height]`. Points can be decimals.
 - Operations are drawn in order, so a later one lands on top of an earlier one in the same layer.
 - To fill inside a shape, draw its outline first on the same layer, then use `fill` from a point inside it.
 - Colours are names such as `red`, or `#rrggbb` or `#rrggbbaa` for transparency.
@@ -30,5 +30,5 @@ Use `ai-paint info FILE` to see the layers, the op counts, and any problems in o
 ## Limits
 
 - No text, image placement, or erase operations yet.
-- Shapes have hard edges. Anti-aliasing is not in yet.
+- Shapes and strokes are anti-aliased. A point `(x, y)` is a pixel corner, and `box` `[x, y, w, h]` covers exactly `w` by `h` pixels.
 - Canvas up to 10,000 pixels on each side and 25 million pixels in total.

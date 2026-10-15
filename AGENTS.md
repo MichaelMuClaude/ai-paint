@@ -47,6 +47,7 @@ python3 -m venv ~/.venvs/ai-paint-dev
 
 - `fill` tolerance is the total difference over red, green, blue and alpha, because that is what Pillow's flood fill uses. The README states it.
 - Strokes merge their dabs with `lighter`, so a semi-transparent stroke has one strength along its path.
+- Coordinates are continuous: a point is a pixel corner. Shapes and strokes are drawn at `raster.AA` times the resolution in a small region, then averaged down. Keep that, or edges will look jagged again.
 
 ## Rules for changes
 

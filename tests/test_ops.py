@@ -76,12 +76,13 @@ def test_single_point_stroke_makes_one_dot():
 
 
 def test_soft_brush_fades_towards_the_rim():
-    img = _render({"op": "stroke", "layer": "l1", "points": [[50, 50]], "size": 20,
+    # The point is a pixel centre, so the centre pixel sits near the peak of the falloff.
+    img = _render({"op": "stroke", "layer": "l1", "points": [[50.5, 50.5]], "size": 20,
                    "colour": "#000000", "brush": "soft"})
     centre = img.getpixel((50, 50))[0]
     near_rim = img.getpixel((58, 50))[0]
-    assert centre == 0
-    assert 0 < near_rim < 255
+    assert centre < 30
+    assert centre < near_rim < 255
 
 
 def test_stroke_is_not_darker_where_its_own_dabs_overlap():
@@ -189,4 +190,16 @@ def test_brush_mask_is_cached_and_not_modified():
 def test_stroke_with_too_many_dabs_is_refused(monkeypatch):
     monkeypatch.setattr(raster, "MAX_DABS", 100)
     with pytest.raises(PaintError, match="needs .* dabs, the limit is 100"):
-        raster.stroke_mask((200, 200), [[0, 0], [150, 150]], 2.0, 1.0, 0.2)
+        raster.draw_stroke(Image.new("RGBA", (200, 200)), [[0, 0], [150, 150]], 2.0, 1.0, 0.2, BLACK, 1.0)
+
+
+def test_curved_edges_are_anti_aliased():
+    img = _render({"op": "ellipse", "layer": "l1", "box": [10.4, 10.4, 30, 30], "fill": "#000000"}, width=60, height=60)
+    partial = [img.getpixel((x, y))[0] for x in range(60) for y in range(60)]
+    assert any(0 < value < 255 for value in partial)
+
+
+def test_box_covers_exactly_its_width_in_pixels():
+    img = _render({"op": "rect", "layer": "l1", "box": [10, 10, 20, 20], "fill": "#000000"})
+    assert img.getpixel((29, 10)) == BLACK
+    assert img.getpixel((30, 10)) == WHITE

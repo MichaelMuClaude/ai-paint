@@ -45,7 +45,7 @@ Run `ai-paint ops` for the full list with types and limits, generated from the c
 
 Every drawing op also takes `layer` (required), `id` (optional), and `opacity` (0 to 1, default 1). The `fill` op sets pixels to the colour and does not blend.
 
-Shapes have hard edges in this version. Anti-aliasing is not in yet.
+Shapes and strokes are anti-aliased: edges are drawn at three times the resolution and averaged down. Coordinates are continuous, so the point `(x, y)` is a pixel corner, and a box `[x, y, 20, 20]` covers exactly 20 by 20 pixels. Outlines are centred on the box edge.
 
 ## Commands
 
@@ -86,7 +86,7 @@ Requires Python 3.10 or newer.
 
 - Canvas up to 10,000 pixels on each side and 25 million pixels in total. Each layer is held in memory at full canvas size.
 - A stroke can have up to 5,000 points and 200,000 dabs.
-- Shapes and strokes have no anti-aliasing yet.
+- Each shape or stroke needs up to nine times its own area of temporary memory while it is drawn.
 - There is no text, image placement, or erase operation yet.
 
 ## Licence
